@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Animals{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Animals</h1>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                Add New Animal
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ url_for('animals.add', type='sheep') }}">
+                    <i class="fas fa-sheep me-2"></i>Add Sheep
+                </a></li>
+                <li><a class="dropdown-item" href="{{ url_for('animals.add', type='cattle') }}">
+                    <i class="fas fa-cow me-2"></i>Add Cattle
+                </a></li>
+                <li><a class="dropdown-item" href="{{ url_for('animals.add', type='chicken') }}">
+                    <i class="fas fa-kiwi-bird me-2"></i>Add Chicken
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('animals.add', type='other') }}">
+                    <i class="fas fa-paw me-2"></i>Add Other Animal
+                </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sheep Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-sheep me-2"></i>Sheep</h3>
+            <a href="{{ url_for('animals.add', type='sheep') }}" class="btn btn-light btn-sm">Add Sheep</a>
+        </div>
+        <div class="card-body">
+            {% if sheep_list %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tag Number</th>
+                            <th>Name</th>
+                            <th>Breed</th>
+                            <th>Wool Grade</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for animal in sheep_list %}
+                        <tr>
+                            <td>{{ animal.tag_number }}</td>
+                            <td>{{ animal.name or 'N/A' }}</td>
+                            <td>{{ animal.breed or 'N/A' }}</td>
+                            <td>{{ animal.wool_grade or 'N/A' }}</td>
+                            <td>
+                                <span class="badge {% if animal.status == 'active' %}bg-success{% elif animal.status == 'sold' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ animal.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No sheep added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Cattle Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-cow me-2"></i>Cattle</h3>
+            <a href="{{ url_for('animals.add', type='cattle') }}" class="btn btn-light btn-sm">Add Cattle</a>
+        </div>
+        <div class="card-body">
+            {% if cattle_list %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tag Number</th>
+                            <th>Name</th>
+                            <th>Breed</th>
+                            <th>Milk Production</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for animal in cattle_list %}
+                        <tr>
+                            <td>{{ animal.tag_number }}</td>
+                            <td>{{ animal.name or 'N/A' }}</td>
+                            <td>{{ animal.breed or 'N/A' }}</td>
+                            <td>{{ animal.milk_production|round(1) if animal.milk_production else 'N/A' }} L</td>
+                            <td>
+                                <span class="badge {% if animal.status == 'active' %}bg-success{% elif animal.status == 'sold' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ animal.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No cattle added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Chicken Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-kiwi-bird me-2"></i>Chickens</h3>
+            <a href="{{ url_for('animals.add', type='chicken') }}" class="btn btn-light btn-sm">Add Chicken</a>
+        </div>
+        <div class="card-body">
+            {% if chicken_list %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tag Number</th>
+                            <th>Name</th>
+                            <th>Breed</th>
+                            <th>Egg Production</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for animal in chicken_list %}
+                        <tr>
+                            <td>{{ animal.tag_number }}</td>
+                            <td>{{ animal.name or 'N/A' }}</td>
+                            <td>{{ animal.breed or 'N/A' }}</td>
+                            <td>{{ animal.egg_production or 'N/A' }} per day</td>
+                            <td>
+                                <span class="badge {% if animal.status == 'active' %}bg-success{% elif animal.status == 'sold' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ animal.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No chickens added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Other Animals Section -->
+    <div class="card">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-paw me-2"></i>Other Animals</h3>
+            <a href="{{ url_for('animals.add', type='other') }}" class="btn btn-light btn-sm">Add Other Animal</a>
+        </div>
+        <div class="card-body">
+            {% if other_list %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tag Number</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Breed</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for animal in other_list %}
+                        <tr>
+                            <td>{{ animal.tag_number }}</td>
+                            <td>{{ animal.name or 'N/A' }}</td>
+                            <td>{{ animal.category }}</td>
+                            <td>{{ animal.breed or 'N/A' }}</td>
+                            <td>
+                                <span class="badge {% if animal.status == 'active' %}bg-success{% elif animal.status == 'sold' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ animal.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No other animals added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block styles %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        padding: 1rem;
+    }
+    .badge {
+        font-size: 0.875rem;
+    }
+    .table th {
+        font-weight: 600;
+    }
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% endblock %}

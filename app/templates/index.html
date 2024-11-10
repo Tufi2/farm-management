@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="text-center hero-section mb-5">
+        <h1 class="display-3 mb-3">Welcome to Farm Management System</h1>
+        <p class="lead mb-3">Manage your farm operations efficiently and effectively.</p>
+        <hr class="divider">
+        <p class="subtitle">Track animals, manage inventory, and monitor production all in one place.</p>
+    </div>
+
+    <!-- Main Features -->
+    <div class="row g-4">
+        <!-- Animal Management -->
+        <div class="col-md-4">
+            <div class="feature-box d-flex flex-column">
+                <div class="content-wrapper">
+                    <div class="feature-icon blue-bg">
+                        <i class="fas fa-cow"></i>
+                    </div>
+                    <h2>Animal Management</h2>
+                    <p>Track and manage your livestock with comprehensive records.</p>
+                </div>
+                <div class="button-wrapper mt-auto">
+                    <a href="{{ url_for('animals.index') }}" class="feature-btn blue-btn">
+                        View Animals <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Records -->
+        <div class="col-md-4">
+            <div class="feature-box d-flex flex-column">
+                <div class="content-wrapper">
+                    <div class="feature-icon red-bg">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h2>Health Records</h2>
+                    <p>Monitor health status and medical treatments.</p>
+                </div>
+                <div class="button-wrapper mt-auto">
+                    <a href="#" class="feature-btn red-btn">
+                        Health Records <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Production Tracking -->
+        <div class="col-md-4">
+            <div class="feature-box d-flex flex-column">
+                <div class="content-wrapper">
+                    <div class="feature-icon green-bg">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h2>Production Tracking</h2>
+                    <p>Monitor and analyze farm production data.</p>
+                </div>
+                <div class="button-wrapper mt-auto">
+                    <a href="#" class="feature-btn green-btn">
+                        View Production <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed Management -->
+        <div class="col-md-4">
+            <div class="feature-box d-flex flex-column">
+                <div class="content-wrapper">
+                    <div class="feature-icon orange-bg">
+                        <i class="fas fa-wheat-awn"></i>
+                    </div>
+                    <h2>Feed Management</h2>
+                    <p>Track feed inventory and consumption.</p>
+                </div>
+                <div class="button-wrapper mt-auto">
+                    <a href="#" class="feature-btn orange-btn">
+                        Manage Feed <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Records -->
+        <div class="col-md-4">
+            <div class="feature-box d-flex flex-column">
+                <div class="content-wrapper">
+                    <div class="feature-icon purple-bg">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h2>Financial Records</h2>
+                    <p>Track income, expenses and profits.</p>
+                </div>
+                <div class="button-wrapper mt-auto">
+                    <a href="#" class="feature-btn purple-btn">
+                        View Finances <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports -->
+        <div class="col-md-4">
+            <div class="feature-box d-flex flex-column">
+                <div class="content-wrapper">
+                    <div class="feature-icon teal-bg">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h2>Reports</h2>
+                    <p>Generate comprehensive farm reports.</p>
+                </div>
+                <div class="button-wrapper mt-auto">
+                    <a href="#" class="feature-btn teal-btn">
+                        View Reports <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .hero-section {
+        padding: 3rem 0;
+        background: linear-gradient(to right, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+    }
+
+    .hero-section h1 {
+        color: #2c3e50;
+        font-weight: 700;
+    }
+
+    .divider {
+        width: 60%;
+        margin: 2rem auto;
+        border-top: 2px solid #e9ecef;
+        background: linear-gradient(to right, transparent, #3498db, transparent);
+        height: 2px;
+        border: none;
+    }
+
+    .subtitle {
+        color: #6c757d;
+        font-size: 1.2rem;
+    }
+
+    .feature-box {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+        text-align: center;
+        min-height: 300px;
+    }
+
+    .feature-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .content-wrapper {
+        flex-grow: 1;
+    }
+
+    .button-wrapper {
+        padding-top: 1rem;
+    }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .feature-box:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .feature-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .feature-box h2 {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .feature-box p {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        min-height: 48px;
+    }
+
+    .feature-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.8rem 1.8rem;
+        border-radius: 50px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .feature-btn i {
+        margin-left: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .feature-btn:hover {
+        color: white;
+        transform: translateX(5px);
+    }
+
+    .feature-btn:hover i {
+        transform: translateX(5px);
+    }
+
+    /* Colors */
+    .blue-bg { background: #3498db; }
+    .red-bg { background: #e74c3c; }
+    .green-bg { background: #2ecc71; }
+    .orange-bg { background: #f39c12; }
+    .purple-bg { background: #9b59b6; }
+    .teal-bg { background: #1abc9c; }
+
+    .blue-btn { background: #3498db; }
+    .red-btn { background: #e74c3c; }
+    .green-btn { background: #2ecc71; }
+    .orange-btn { background: #f39c12; }
+    .purple-btn { background: #9b59b6; }
+    .teal-btn { background: #1abc9c; }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .feature-box {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    .row > div:nth-child(1) .feature-box { animation-delay: 0.1s; }
+    .row > div:nth-child(2) .feature-box { animation-delay: 0.2s; }
+    .row > div:nth-child(3) .feature-box { animation-delay: 0.3s; }
+    .row > div:nth-child(4) .feature-box { animation-delay: 0.4s; }
+    .row > div:nth-child(5) .feature-box { animation-delay: 0.5s; }
+    .row > div:nth-child(6) .feature-box { animation-delay: 0.6s; }
+</style>
+{% endblock %}
