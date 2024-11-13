@@ -48,65 +48,6 @@ def index():
                          chicken_records=chicken_records,
                          today=today)
 
-@bp.route('/sheep')
-@login_required
-def sheep_list():
-    """Display all sheep health records"""
-    today = date.today()
-    records = (HealthRecord.query
-              .join(Animal)
-              .filter(Animal.species == 'Sheep')
-              .order_by(HealthRecord.date.desc())
-              .all())
-    return render_template('health_records/list.html',
-                         records=records,
-                         animal_type='Sheep',
-                         today=today)
-
-@bp.route('/sheep/add', methods=['GET', 'POST'])
-@login_required
-def add_sheep():
-    """Add a new sheep health record"""
-    if request.method == 'POST':
-        try:
-            # Get the sheep by tag number
-            tag_number = request.form.get('tag_number')
-            sheep = Animal.query.filter_by(tag_number=tag_number, species='Sheep').first()
-            
-            if not sheep:
-                flash('Sheep not found with this tag number', 'danger')
-                return redirect(url_for('health_records.add_sheep'))
-
-            record = HealthRecord(
-                animal_id=sheep.id,
-                record_type='Health Check',
-                date=datetime.strptime(request.form.get('date'), '%Y-%m-%d').date(),
-                description=request.form.get('symptoms'),
-                treatment=request.form.get('treatment'),
-                cost=float(request.form.get('medication_cost')) if request.form.get('medication_cost') else None,
-                next_due_date=datetime.strptime(request.form.get('next_checkup'), '%Y-%m-%d').date() if request.form.get('next_checkup') else None,
-                created_by_id=current_user.id,
-                created_at=datetime.utcnow()
-            )
-            
-            db.session.add(record)
-            db.session.commit()
-            
-            flash('Sheep health record added successfully!', 'success')
-            return redirect(url_for('health_records.sheep_list'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error adding health record: {str(e)}', 'danger')
-            return redirect(url_for('health_records.add_sheep'))
-    
-    # Get all sheep for the form dropdown
-    sheep = Animal.query.filter_by(species='Sheep').all()
-    return render_template('health_records/add.html',
-                         animals=sheep,
-                         animal_type='Sheep',
-                         today=date.today())
-
 @bp.route('/type/<animal_type>')
 @login_required
 def list_by_type(animal_type):
@@ -127,6 +68,7 @@ def list_by_type(animal_type):
                          animal_type=species,
                          today=today)
 
+# Keep your existing routes below this line
 @bp.route('/add/<int:animal_id>', methods=['GET', 'POST'])
 @login_required
 def add(animal_id):

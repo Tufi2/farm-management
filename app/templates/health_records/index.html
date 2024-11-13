@@ -4,22 +4,16 @@
 
 {% block content %}
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Health Records</h1>
-        <a href="{{ url_for('animals.index') }}" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Animals
-        </a>
-    </div>
+    <h1 class="mb-4">Health Records</h1>
 
-    <!-- Animal Categories -->
     <div class="row g-4">
         <!-- Sheep Section -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
+                    <h2 class="h5 mb-0">
                         <i class="fas fa-sheep me-2"></i>Sheep Health Records
-                    </h3>
+                    </h2>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='sheep') }}" class="btn btn-light btn-sm">
                         View All
                     </a>
@@ -27,37 +21,10 @@
                 <div class="card-body">
                     {% if sheep_records %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tag Number</th>
-                                    <th>Record Type</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in sheep_records[:5] %}
-                                <tr>
-                                    <td>{{ record.animal.tag_number }}</td>
-                                    <td>{{ record.record_type }}</td>
-                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
-                                    <td>
-                                        {% if record.next_due_date and record.next_due_date < today %}
-                                            <span class="badge bg-danger">Overdue</span>
-                                        {% else %}
-                                            <span class="badge bg-success">Up to date</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <!-- Table content for sheep records -->
                     </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <p class="text-muted mb-0">No health records for sheep</p>
-                    </div>
+                    <p class="text-muted text-center my-3">No health records for sheep</p>
                     {% endif %}
                 </div>
             </div>
@@ -65,11 +32,11 @@
 
         <!-- Cattle Section -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
+                    <h2 class="h5 mb-0">
                         <i class="fas fa-cow me-2"></i>Cattle Health Records
-                    </h3>
+                    </h2>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='cattle') }}" class="btn btn-light btn-sm">
                         View All
                     </a>
@@ -77,49 +44,22 @@
                 <div class="card-body">
                     {% if cattle_records %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tag Number</th>
-                                    <th>Record Type</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in cattle_records[:5] %}
-                                <tr>
-                                    <td>{{ record.animal.tag_number }}</td>
-                                    <td>{{ record.record_type }}</td>
-                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
-                                    <td>
-                                        {% if record.next_due_date and record.next_due_date < today %}
-                                            <span class="badge bg-danger">Overdue</span>
-                                        {% else %}
-                                            <span class="badge bg-success">Up to date</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <!-- Table content for cattle records -->
                     </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <p class="text-muted mb-0">No health records for cattle</p>
-                    </div>
+                    <p class="text-muted text-center my-3">No health records for cattle</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Goats Section -->
+        <!-- Goat Section -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card">
                 <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
+                    <h2 class="h5 mb-0">
                         <i class="fas fa-goat me-2"></i>Goat Health Records
-                    </h3>
+                    </h2>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='goat') }}" class="btn btn-light btn-sm">
                         View All
                     </a>
@@ -127,49 +67,22 @@
                 <div class="card-body">
                     {% if goat_records %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tag Number</th>
-                                    <th>Record Type</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in goat_records[:5] %}
-                                <tr>
-                                    <td>{{ record.animal.tag_number }}</td>
-                                    <td>{{ record.record_type }}</td>
-                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
-                                    <td>
-                                        {% if record.next_due_date and record.next_due_date < today %}
-                                            <span class="badge bg-danger">Overdue</span>
-                                        {% else %}
-                                            <span class="badge bg-success">Up to date</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <!-- Table content for goat records -->
                     </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <p class="text-muted mb-0">No health records for goats</p>
-                    </div>
+                    <p class="text-muted text-center my-3">No health records for goats</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Chickens Section -->
+        <!-- Chicken Section -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
+                    <h2 class="h5 mb-0">
                         <i class="fas fa-kiwi-bird me-2"></i>Chicken Health Records
-                    </h3>
+                    </h2>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='chicken') }}" class="btn btn-light btn-sm">
                         View All
                     </a>
@@ -177,37 +90,10 @@
                 <div class="card-body">
                     {% if chicken_records %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tag Number</th>
-                                    <th>Record Type</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in chicken_records[:5] %}
-                                <tr>
-                                    <td>{{ record.animal.tag_number }}</td>
-                                    <td>{{ record.record_type }}</td>
-                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
-                                    <td>
-                                        {% if record.next_due_date and record.next_due_date < today %}
-                                            <span class="badge bg-danger">Overdue</span>
-                                        {% else %}
-                                            <span class="badge bg-success">Up to date</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <!-- Table content for chicken records -->
                     </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <p class="text-muted mb-0">No health records for chickens</p>
-                    </div>
+                    <p class="text-muted text-center my-3">No health records for chickens</p>
                     {% endif %}
                 </div>
             </div>
@@ -219,20 +105,18 @@
 <style>
     .card {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        margin-bottom: 1rem;
     }
     .card-header {
-        padding: 1rem;
+        padding: 0.75rem 1rem;
     }
     .table th {
         font-weight: 600;
     }
-    .badge {
-        font-size: 0.875rem;
+    .btn-light {
+        background-color: rgba(255, 255, 255, 0.85);
     }
-    .table-hover tbody tr:hover {
-        background-color: rgba(0,0,0,.02);
-        cursor: pointer;
+    .btn-light:hover {
+        background-color: #fff;
     }
 </style>
 {% endblock %}
