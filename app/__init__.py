@@ -21,14 +21,16 @@ def create_app(config_class=Config):
 
     # Import models here
     from app.models.user import User
+    from app.models.animal import Animal, HealthRecord  # Add this line to import health record model
 
     with app.app_context():
         # Register blueprints
-        from app.routes import main, auth, animals, inventory
+        from app.routes import main, auth, animals, inventory, health_records  # Add health_records import
         app.register_blueprint(main.bp)
         app.register_blueprint(auth.bp)
         app.register_blueprint(animals.bp)
         app.register_blueprint(inventory.bp)
+        app.register_blueprint(health_records.bp)  # Register health_records blueprint
 
         # Create database tables
         db.create_all()

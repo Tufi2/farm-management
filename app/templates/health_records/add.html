@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Add Sheep Health Record{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Add Sheep Health Record</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Basic Information</h3>
+                            <div class="col-md-6">
+                                <label for="tag_number" class="form-label">Sheep Tag Number *</label>
+                                <input type="text" class="form-control" id="tag_number" name="tag_number" required>
+                            </div>
+                        </div>
+
+                        <!-- Health Status -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Health Status</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="health_status" class="form-label">Current Health Status *</label>
+                                <select class="form-select" id="health_status" name="health_status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Healthy">Healthy</option>
+                                    <option value="Sick">Sick</option>
+                                    <option value="Treatment">Under Treatment</option>
+                                    <option value="Observation">Under Observation</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vaccination_status" class="form-label">Vaccination Status</label>
+                                <select class="form-select" id="vaccination_status" name="vaccination_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Up to Date">Up to Date</option>
+                                    <option value="Due">Due for Vaccination</option>
+                                    <option value="Overdue">Overdue</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Lambing History -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Lambing History</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="pregnancy_status" class="form-label">Pregnancy Status</label>
+                                <select class="form-select" id="pregnancy_status" name="pregnancy_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Not Pregnant">Not Pregnant</option>
+                                    <option value="Pregnant">Pregnant</option>
+                                    <option value="Lambing Soon">Lambing Soon</option>
+                                    <option value="Recently Lambed">Recently Lambed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_lambing_date" class="form-label">Last Lambing Date</label>
+                                <input type="date" class="form-control" id="last_lambing_date" name="last_lambing_date">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="lambing_notes" class="form-label">Lambing Notes</label>
+                                <textarea class="form-control" id="lambing_notes" name="lambing_notes" rows="2"
+                                          placeholder="Enter details about lamb health, complications, etc."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Parasite Control -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Parasite Control</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="parasite_check_date" class="form-label">Last Check Date</label>
+                                <input type="date" class="form-control" id="parasite_check_date" name="parasite_check_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="parasite_status" class="form-label">Parasite Status</label>
+                                <select class="form-select" id="parasite_status" name="parasite_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Clear">Clear</option>
+                                    <option value="Minor Infestation">Minor Infestation</option>
+                                    <option value="Severe Infestation">Severe Infestation</option>
+                                    <option value="Under Treatment">Under Treatment</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="parasite_treatment" class="form-label">Treatment Details</label>
+                                <textarea class="form-control" id="parasite_treatment" name="parasite_treatment" rows="2"
+                                          placeholder="Enter treatment details if any"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Foot Health -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Foot Health</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="foot_condition" class="form-label">Foot Condition</label>
+                                <select class="form-select" id="foot_condition" name="foot_condition">
+                                    <option value="">Select Condition</option>
+                                    <option value="Healthy">Healthy</option>
+                                    <option value="Minor Issues">Minor Issues</option>
+                                    <option value="Foot Rot">Foot Rot</option>
+                                    <option value="Under Treatment">Under Treatment</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_foot_check" class="form-label">Last Foot Check Date</label>
+                                <input type="date" class="form-control" id="last_foot_check" name="last_foot_check">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="foot_treatment" class="form-label">Foot Treatment Notes</label>
+                                <textarea class="form-control" id="foot_treatment" name="foot_treatment" rows="2"
+                                          placeholder="Enter any foot treatment details"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Flock Behavior -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Flock Behavior</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="behavior_pattern" class="form-label">Behavior Pattern</label>
+                                <select class="form-select" id="behavior_pattern" name="behavior_pattern">
+                                    <option value="">Select Pattern</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Isolated">Isolated</option>
+                                    <option value="Aggressive">Aggressive</option>
+                                    <option value="Stressed">Stressed</option>
+                                    <option value="Lethargic">Lethargic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="stress_level" class="form-label">Stress Level</label>
+                                <select class="form-select" id="stress_level" name="stress_level">
+                                    <option value="">Select Level</option>
+                                    <option value="None">None</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="behavior_notes" class="form-label">Behavioral Notes</label>
+                                <textarea class="form-control" id="behavior_notes" name="behavior_notes" rows="2"
+                                          placeholder="Enter any notable behavior observations"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Record</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .h6 {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    .mb-4 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1.5rem;
+    }
+    .mb-4:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}

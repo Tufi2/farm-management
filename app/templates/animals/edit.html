@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Animal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        {% if animal.species == 'Sheep' %}
+                            <i class="fas fa-sheep me-2"></i>Edit Sheep
+                        {% elif animal.species == 'Cattle' %}
+                            <i class="fas fa-cow me-2"></i>Edit Cattle
+                        {% elif animal.species == 'Chicken' %}
+                            <i class="fas fa-kiwi-bird me-2"></i>Edit Chicken
+                        {% else %}
+                            <i class="fas fa-paw me-2"></i>Edit Animal
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Common Fields -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tag_number" class="form-label">Tag Number *</label>
+                                <input type="text" class="form-control" id="tag_number" name="tag_number" 
+                                       value="{{ animal.tag_number }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ animal.name or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="breed" class="form-label">Breed</label>
+                                <input type="text" class="form-control" id="breed" name="breed" 
+                                       value="{{ animal.breed or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male" {% if animal.gender == 'Male' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if animal.gender == 'Female' %}selected{% endif %}>Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                                       value="{{ animal.date_of_birth.strftime('%Y-%m-%d') if animal.date_of_birth }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="weight" class="form-label">Weight (kg)</label>
+                                <input type="number" step="0.1" class="form-control" id="weight" name="weight"
+                                       value="{{ animal.weight or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="active" {% if animal.status == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="sold" {% if animal.status == 'sold' %}selected{% endif %}>Sold</option>
+                                    <option value="deceased" {% if animal.status == 'deceased' %}selected{% endif %}>Deceased</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {% if animal.species == 'Sheep' %}
+                        <!-- Sheep-specific fields -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="wool_type" class="form-label">Wool Type</label>
+                                <select class="form-select" id="wool_type" name="wool_type">
+                                    <option value="">Select Wool Type</option>
+                                    <option value="Fine" {% if animal.wool_type == 'Fine' %}selected{% endif %}>Fine</option>
+                                    <option value="Medium" {% if animal.wool_type == 'Medium' %}selected{% endif %}>Medium</option>
+                                    <option value="Coarse" {% if animal.wool_type == 'Coarse' %}selected{% endif %}>Coarse</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="wool_grade" class="form-label">Wool Grade</label>
+                                <select class="form-select" id="wool_grade" name="wool_grade">
+                                    <option value="">Select Grade</option>
+                                    <option value="AAA" {% if animal.wool_grade == 'AAA' %}selected{% endif %}>AAA</option>
+                                    <option value="AA" {% if animal.wool_grade == 'AA' %}selected{% endif %}>AA</option>
+                                    <option value="A" {% if animal.wool_grade == 'A' %}selected{% endif %}>A</option>
+                                    <option value="B" {% if animal.wool_grade == 'B' %}selected{% endif %}>B</option>
+                                </select>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if animal.species == 'Cattle' %}
+                        <!-- Cattle-specific fields -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="milk_production" class="form-label">Milk Production (L/day)</label>
+                                <input type="number" step="0.1" class="form-control" id="milk_production" 
+                                       name="milk_production" value="{{ animal.milk_production or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="milk_quality" class="form-label">Milk Quality</label>
+                                <select class="form-select" id="milk_quality" name="milk_quality">
+                                    <option value="">Select Quality</option>
+                                    <option value="Premium" {% if animal.milk_quality == 'Premium' %}selected{% endif %}>Premium</option>
+                                    <option value="Grade A" {% if animal.milk_quality == 'Grade A' %}selected{% endif %}>Grade A</option>
+                                    <option value="Grade B" {% if animal.milk_quality == 'Grade B' %}selected{% endif %}>Grade B</option>
+                                </select>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if animal.species == 'Chicken' %}
+                        <!-- Chicken-specific fields -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="egg_production" class="form-label">Egg Production (per day)</label>
+                                <input type="number" class="form-control" id="egg_production" 
+                                       name="egg_production" value="{{ animal.egg_production or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="egg_color" class="form-label">Egg Color</label>
+                                <select class="form-select" id="egg_color" name="egg_color">
+                                    <option value="">Select Color</option>
+                                    <option value="Brown" {% if animal.egg_color == 'Brown' %}selected{% endif %}>Brown</option>
+                                    <option value="White" {% if animal.egg_color == 'White' %}selected{% endif %}>White</option>
+                                    <option value="Cream" {% if animal.egg_color == 'Cream' %}selected{% endif %}>Cream</option>
+                                </select>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Notes Field -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3">{{ animal.notes or '' }}</textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('animals.index') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
