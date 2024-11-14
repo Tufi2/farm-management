@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Animals{% endblock %}
+{% block title %}Animals{% endblock title %}
 
 {% block content %}
 <div class="container">
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="actionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i id="toastIcon" class="fas me-2"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Animals</h1>
         <div class="dropdown">
@@ -29,17 +41,28 @@
     </div>
 
     <!-- Sheep Section -->
-    <div class="card mb-4">
+    <div class="card mb-4" id="sheep-section">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0"><i class="fas fa-sheep me-2"></i>Sheep</h3>
             <a href="{{ url_for('animals.add', type='sheep') }}" class="btn btn-light btn-sm">Add Sheep</a>
         </div>
         <div class="card-body">
+            <!-- Bulk Actions Toolbar -->
+            <div class="mb-3 bulk-actions" style="display: none;" data-animal-type="sheep">
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkDelete('sheep')">
+                    <i class="fas fa-trash me-1"></i> Delete Selected
+                </button>
+                <span class="ms-2 selected-count">0 selected</span>
+            </div>
+
             {% if sheep_list %}
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover" id="sheep-table">
                     <thead>
                         <tr>
+                            <th class="text-center" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input select-all" data-animal-type="sheep">
+                            </th>
                             <th>Tag Number</th>
                             <th>Name</th>
                             <th>Breed</th>
@@ -51,6 +74,11 @@
                     <tbody>
                         {% for animal in sheep_list %}
                         <tr>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input animal-select" 
+                                       data-animal-id="{{ animal.id }}" 
+                                       data-animal-type="sheep">
+                            </td>
                             <td>{{ animal.tag_number }}</td>
                             <td>{{ animal.name or 'N/A' }}</td>
                             <td>{{ animal.breed or 'N/A' }}</td>
@@ -62,12 +90,16 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
+                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
+                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <button type="button" class="btn btn-danger" title="Delete" 
+                                            onclick="confirmDelete('{{ animal.id }}', '{{ animal.tag_number }}', 'Sheep')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -76,23 +108,34 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-muted mb-0">No sheep added yet.</p>
+            <p class="text-muted mb-0" id="sheep-empty-message">No sheep added yet.</p>
             {% endif %}
         </div>
     </div>
 
     <!-- Cattle Section -->
-    <div class="card mb-4">
+    <div class="card mb-4" id="cattle-section">
         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0"><i class="fas fa-cow me-2"></i>Cattle</h3>
             <a href="{{ url_for('animals.add', type='cattle') }}" class="btn btn-light btn-sm">Add Cattle</a>
         </div>
         <div class="card-body">
+            <!-- Bulk Actions Toolbar -->
+            <div class="mb-3 bulk-actions" style="display: none;" data-animal-type="cattle">
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkDelete('cattle')">
+                    <i class="fas fa-trash me-1"></i> Delete Selected
+                </button>
+                <span class="ms-2 selected-count">0 selected</span>
+            </div>
+
             {% if cattle_list %}
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover" id="cattle-table">
                     <thead>
                         <tr>
+                            <th class="text-center" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input select-all" data-animal-type="cattle">
+                            </th>
                             <th>Tag Number</th>
                             <th>Name</th>
                             <th>Breed</th>
@@ -104,6 +147,11 @@
                     <tbody>
                         {% for animal in cattle_list %}
                         <tr>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input animal-select" 
+                                       data-animal-id="{{ animal.id }}" 
+                                       data-animal-type="cattle">
+                            </td>
                             <td>{{ animal.tag_number }}</td>
                             <td>{{ animal.name or 'N/A' }}</td>
                             <td>{{ animal.breed or 'N/A' }}</td>
@@ -115,12 +163,16 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
+                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
+                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <button type="button" class="btn btn-danger" title="Delete" 
+                                            onclick="confirmDelete('{{ animal.id }}', '{{ animal.tag_number }}', 'Cattle')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -129,23 +181,34 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-muted mb-0">No cattle added yet.</p>
+            <p class="text-muted mb-0" id="cattle-empty-message">No cattle added yet.</p>
             {% endif %}
         </div>
     </div>
 
     <!-- Chicken Section -->
-    <div class="card mb-4">
+    <div class="card mb-4" id="chicken-section">
         <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0"><i class="fas fa-kiwi-bird me-2"></i>Chickens</h3>
             <a href="{{ url_for('animals.add', type='chicken') }}" class="btn btn-light btn-sm">Add Chicken</a>
         </div>
         <div class="card-body">
+            <!-- Bulk Actions Toolbar -->
+            <div class="mb-3 bulk-actions" style="display: none;" data-animal-type="chicken">
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkDelete('chicken')">
+                    <i class="fas fa-trash me-1"></i> Delete Selected
+                </button>
+                <span class="ms-2 selected-count">0 selected</span>
+            </div>
+
             {% if chicken_list %}
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover" id="chicken-table">
                     <thead>
                         <tr>
+                            <th class="text-center" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input select-all" data-animal-type="chicken">
+                            </th>
                             <th>Tag Number</th>
                             <th>Name</th>
                             <th>Breed</th>
@@ -157,6 +220,11 @@
                     <tbody>
                         {% for animal in chicken_list %}
                         <tr>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input animal-select" 
+                                       data-animal-id="{{ animal.id }}" 
+                                       data-animal-type="chicken">
+                            </td>
                             <td>{{ animal.tag_number }}</td>
                             <td>{{ animal.name or 'N/A' }}</td>
                             <td>{{ animal.breed or 'N/A' }}</td>
@@ -168,12 +236,16 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
+                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
+                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <button type="button" class="btn btn-danger" title="Delete" 
+                                            onclick="confirmDelete('{{ animal.id }}', '{{ animal.tag_number }}', 'Chicken')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -182,23 +254,34 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-muted mb-0">No chickens added yet.</p>
+            <p class="text-muted mb-0" id="chicken-empty-message">No chickens added yet.</p>
             {% endif %}
         </div>
     </div>
 
     <!-- Other Animals Section -->
-    <div class="card">
+    <div class="card" id="other-section">
         <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0"><i class="fas fa-paw me-2"></i>Other Animals</h3>
             <a href="{{ url_for('animals.add', type='other') }}" class="btn btn-light btn-sm">Add Other Animal</a>
         </div>
         <div class="card-body">
+            <!-- Bulk Actions Toolbar -->
+            <div class="mb-3 bulk-actions" style="display: none;" data-animal-type="other">
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkDelete('other')">
+                    <i class="fas fa-trash me-1"></i> Delete Selected
+                </button>
+                <span class="ms-2 selected-count">0 selected</span>
+            </div>
+
             {% if other_list %}
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover" id="other-table">
                     <thead>
                         <tr>
+                            <th class="text-center" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input select-all" data-animal-type="other">
+                            </th>
                             <th>Tag Number</th>
                             <th>Name</th>
                             <th>Category</th>
@@ -210,55 +293,302 @@
                     <tbody>
                         {% for animal in other_list %}
                         <tr>
-                            <td>{{ animal.tag_number }}</td>
-                            <td>{{ animal.name or 'N/A' }}</td>
-                            <td>{{ animal.category }}</td>
-                            <td>{{ animal.breed or 'N/A' }}</td>
-                            <td>
-                                <span class="badge {% if animal.status == 'active' %}bg-success{% elif animal.status == 'sold' %}bg-info{% else %}bg-secondary{% endif %}">
-                                    {{ animal.status }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input animal-select" 
+                                       data-animal-id="{{ animal.id }}" 
+                                       data-animal-type="other">
+                                    </td>
+                                    <td>{{ animal.tag_number }}</td>
+                                    <td>{{ animal.name or 'N/A' }}</td>
+                                    <td>{{ animal.category }}</td>
+                                    <td>{{ animal.breed or 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge {% if animal.status == 'active' %}bg-success{% elif animal.status == 'sold' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ animal.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('animals.view', id=animal.id) }}" class="btn btn-info" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('animals.edit', id=animal.id) }}" class="btn btn-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-danger" title="Delete" 
+                                                    onclick="confirmDelete('{{ animal.id }}', '{{ animal.tag_number }}', 'Other')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0" id="other-empty-message">No other animals added yet.</p>
+                    {% endif %}
+                </div>
             </div>
-            {% else %}
-            <p class="text-muted mb-0">No other animals added yet.</p>
-            {% endif %}
         </div>
-    </div>
-</div>
-
-{% block styles %}
-<style>
-    .card {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    .card-header {
-        padding: 1rem;
-    }
-    .badge {
-        font-size: 0.875rem;
-    }
-    .table th {
-        font-weight: 600;
-    }
-    .btn-group-sm > .btn {
-        padding: 0.25rem 0.5rem;
-    }
-</style>
-{% endblock %}
-
-{% endblock %}
+        
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete <span id="animalType"></span> with tag number <span id="deleteTagNumber" class="fw-bold"></span>?
+                        <p class="text-danger mt-2 mb-0"><small>This action cannot be undone.</small></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="deleteForm" method="POST" action="">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            {% block styles %}
+            <style>
+                .card {
+                    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                }
+                .card-header {
+                    padding: 1rem;
+                }
+                .badge {
+                    font-size: 0.875rem;
+                }
+                .table th {
+                    font-weight: 600;
+                }
+                .btn-group-sm > .btn {
+                    padding: 0.25rem 0.5rem;
+                }
+                .modal-header {
+                    background-color: #f8f9fa;
+                }
+                .modal-title {
+                    color: #dc3545;
+                }
+                
+                /* Animation Styles */
+                .deleteAnimation {
+                    animation: fadeOutLeft 0.5s ease forwards;
+                }
+        
+                @keyframes fadeOutLeft {
+                    from {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                    to {
+                        opacity: 0;
+                        transform: translateX(-100%);
+                    }
+                }
+        
+                .toast {
+                    opacity: 0;
+                    transition: opacity 0.3s ease-in;
+                }
+        
+                .toast.show {
+                    opacity: 1;
+                }
+        
+                .bulk-actions {
+                    background-color: #f8f9fa;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    animation: slideDown 0.3s ease-out;
+                }
+        
+                @keyframes slideDown {
+                    from {
+                        transform: translateY(-20px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+        
+                .form-check-input:checked {
+                    animation: checkmarkPop 0.2s ease-in-out;
+                }
+        
+                @keyframes checkmarkPop {
+                    50% {
+                        transform: scale(1.2);
+                    }
+                    100% {
+                        transform: scale(1);
+                    }
+                }
+            </style>
+            {% endblock %}
+        
+            {% block scripts %}
+            <script>
+                // Toast Notification System
+                function showToast(message, type = 'success') {
+                    const toast = document.getElementById('actionToast');
+                    const toastInstance = bootstrap.Toast.getOrCreateInstance(toast);
+                    const icon = document.getElementById('toastIcon');
+                    const title = document.getElementById('toastTitle');
+                    const messageEl = document.getElementById('toastMessage');
+        
+                    if (type === 'success') {
+                        icon.className = 'fas fa-check-circle text-success me-2';
+                        title.textContent = 'Success';
+                        toast.classList.remove('bg-danger', 'text-white');
+                    } else {
+                        icon.className = 'fas fa-exclamation-circle text-danger me-2';
+                        title.textContent = 'Error';
+                        toast.classList.add('bg-danger', 'text-white');
+                    }
+        
+                    messageEl.textContent = message;
+                    toastInstance.show();
+                }
+        
+                // Single Delete Function with Animation
+                function confirmDelete(animalId, tagNumber, type) {
+                    document.getElementById('deleteTagNumber').textContent = tagNumber;
+                    document.getElementById('animalType').textContent = type;
+                    const deleteForm = document.getElementById('deleteForm');
+                    
+                    deleteForm.onsubmit = async (e) => {
+                        e.preventDefault();
+                        try {
+                            const response = await fetch(`/animals/${animalId}/delete`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+        
+                            if (response.ok) {
+                                const row = document.querySelector(`[data-animal-id="${animalId}"]`).closest('tr');
+                                row.classList.add('deleteAnimation');
+                                
+                                setTimeout(() => {
+                                    row.remove();
+                                    showToast(`${type} deleted successfully!`);
+                                    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                                    updateEmptyStateMessage(type.toLowerCase());
+                                }, 500);
+                            } else {
+                                throw new Error('Delete failed');
+                            }
+                        } catch (error) {
+                            showToast('Error deleting animal', 'error');
+                        }
+                    };
+                    
+                    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+                }
+        
+                // Bulk Selection System
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Handle "Select All" checkboxes
+                    document.querySelectorAll('.select-all').forEach(checkbox => {
+                        checkbox.addEventListener('change', function() {
+                            const type = this.dataset.animalType;
+                            const checkboxes = document.querySelectorAll(`.animal-select[data-animal-type="${type}"]`);
+                            checkboxes.forEach(cb => cb.checked = this.checked);
+                            updateBulkActionVisibility(type);
+                        });
+                    });
+        
+                    // Handle individual checkboxes
+                    document.addEventListener('change', function(e) {
+                        if (e.target.classList.contains('animal-select')) {
+                            const type = e.target.dataset.animalType;
+                            updateBulkActionVisibility(type);
+                        }
+                    });
+                });
+        
+                // Update Bulk Action Toolbar Visibility
+                function updateBulkActionVisibility(type) {
+                    const checkboxes = document.querySelectorAll(`.animal-select[data-animal-type="${type}"]`);
+                    const checkedBoxes = document.querySelectorAll(`.animal-select[data-animal-type="${type}"]:checked`);
+                    const bulkActions = document.querySelector(`.bulk-actions[data-animal-type="${type}"]`);
+                    const selectedCount = document.querySelector(`.bulk-actions[data-animal-type="${type}"] .selected-count`);
+                    
+                    if (checkedBoxes.length > 0) {
+                        bulkActions.style.display = 'block';
+                        selectedCount.textContent = `${checkedBoxes.length} selected`;
+                    } else {
+                        bulkActions.style.display = 'none';
+                    }
+        
+                    // Update "Select All" checkbox state
+                    const selectAll = document.querySelector(`.select-all[data-animal-type="${type}"]`);
+                    selectAll.checked = checkedBoxes.length === checkboxes.length;
+                    selectAll.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < checkboxes.length;
+                }
+        
+                // Bulk Delete Function
+                async function confirmBulkDelete(type) {
+                    const checkedBoxes = document.querySelectorAll(`.animal-select[data-animal-type="${type}"]:checked`);
+                    const ids = Array.from(checkedBoxes).map(cb => cb.dataset.animalId);
+                    
+                    if (confirm(`Are you sure you want to delete ${ids.length} selected ${type}?`)) {
+                        try {
+                            const response = await fetch('/animals/bulk-delete', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: JSON.stringify({ ids: ids })
+                            });
+        
+                            if (response.ok) {
+                                checkedBoxes.forEach(cb => {
+                                    const row = cb.closest('tr');
+                                    row.classList.add('deleteAnimation');
+                                    setTimeout(() => row.remove(), 500);
+                                });
+                                
+                                showToast(`Successfully deleted ${ids.length} ${type}`);
+                                updateBulkActionVisibility(type);
+                                updateEmptyStateMessage(type);
+                            } else {
+                                throw new Error('Bulk delete failed');
+                            }
+                        } catch (error) {
+                            showToast('Error performing bulk delete', 'error');
+                        }
+                    }
+                }
+        
+                // Update Empty State Message
+                function updateEmptyStateMessage(type) {
+                    const tableBody = document.querySelector(`#${type}-table tbody`);
+                    const emptyMessage = document.querySelector(`#${type}-empty-message`);
+                    
+                    if (tableBody && tableBody.children.length === 0) {
+                        if (emptyMessage) {
+                            emptyMessage.style.display = 'block';
+                        }
+                        if (tableBody.closest('.table-responsive')) {
+                            tableBody.closest('.table-responsive').style.display = 'none';
+                        }
+                    }
+                }
+            </script>
+            {% endblock %}
+        {% endblock content %}           

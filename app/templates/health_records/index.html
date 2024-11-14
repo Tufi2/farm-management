@@ -12,19 +12,68 @@
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0">
-                        <i class="fas fa-sheep me-2"></i>Sheep Health Records
+                        <i class="fas fa-sheep me-2"></i>Sheep 
                     </h2>
-                    <a href="{{ url_for('health_records.list_by_type', animal_type='sheep') }}" class="btn btn-light btn-sm">
-                        View All
-                    </a>
+                    <div>
+                        <a href="{{ url_for('health_records.add_sheep') }}" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-plus me-1"></i>Add Sheep
+                        </a>
+                        <a href="{{ url_for('health_records.list_by_type', animal_type='sheep') }}" class="btn btn-light btn-sm">
+                            View All
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     {% if sheep_records %}
                     <div class="table-responsive">
-                        <!-- Table content for sheep records -->
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tag Number</th>
+                                    <th>Breed</th>
+                                    <th>Last Check</th>
+                                    <th>Health Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in sheep_records %}
+                                <tr>
+                                    <td>{{ record.tag_number }}</td>
+                                    <td>{{ record.breed }}</td>
+                                    <td>{{ record.last_check.strftime('%Y-%m-%d') if record.last_check else 'Not checked' }}</td>
+                                    <td>
+                                        <span class="badge {% if record.health_status == 'Healthy' %}bg-success
+                                                       {% elif record.health_status == 'Sick' %}bg-danger
+                                                       {% else %}bg-warning{% endif %}">
+                                            {{ record.health_status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('health_records.view_sheep', id=record.id) }}" 
+                                               class="btn btn-info" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('health_records.edit_sheep', id=record.id) }}" 
+                                               class="btn btn-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                     {% else %}
-                    <p class="text-muted text-center my-3">No health records for sheep</p>
+                    <div class="text-center py-4">
+                        <i class="fas fa-sheep fa-2x text-muted mb-3"></i>
+                        <p class="text-muted mb-3">No health records for sheep</p>
+                        <a href="{{ url_for('health_records.add_sheep') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add First Record
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -35,7 +84,7 @@
             <div class="card">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0">
-                        <i class="fas fa-cow me-2"></i>Cattle Health Records
+                        <i class="fas fa-cow me-2"></i>Cattle
                     </h2>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='cattle') }}" class="btn btn-light btn-sm">
                         View All
@@ -58,7 +107,7 @@
             <div class="card">
                 <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0">
-                        <i class="fas fa-goat me-2"></i>Goat Health Records
+                        <i class="fas fa-goat me-2"></i>Goat
                     </h2>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='goat') }}" class="btn btn-light btn-sm">
                         View All
@@ -81,7 +130,7 @@
             <div class="card">
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0">
-                        <i class="fas fa-kiwi-bird me-2"></i>Chicken Health Records
+                        <i class="fas fa-kiwi-bird me-2"></i>Chicken 
                     </h2>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='chicken') }}" class="btn btn-light btn-sm">
                         View All

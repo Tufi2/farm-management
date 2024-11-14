@@ -16,109 +16,85 @@
     <div class="row g-4">
         <!-- Animal Management -->
         <div class="col-md-4">
-            <div class="feature-box d-flex flex-column">
-                <div class="content-wrapper">
-                    <div class="feature-icon blue-bg">
-                        <i class="fas fa-cow"></i>
-                    </div>
-                    <h2>Animal Management</h2>
-                    <p>Track and manage your livestock with comprehensive records.</p>
+            <div class="feature-box">
+                <div class="feature-icon blue-bg">
+                    <i class="fas fa-cow"></i>
                 </div>
-                <div class="button-wrapper mt-auto">
-                    <a href="{{ url_for('animals.index') }}" class="feature-btn blue-btn">
-                        View Animals <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+                <h2>Animal Management</h2>
+                <p>Track and manage your livestock with comprehensive records.</p>
+                <a href="{{ url_for('animals.index') }}" class="feature-btn blue-btn">
+                    View Animals <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
         <!-- Health Records -->
         <div class="col-md-4">
-            <div class="feature-box d-flex flex-column">
-                <div class="content-wrapper">
-                    <div class="feature-icon red-bg">
-                        <i class="fas fa-heartbeat"></i>
-                    </div>
-                    <h2>Health Records</h2>
-                    <p>Monitor health status and medical treatments.</p>
+            <div class="feature-box">
+                <div class="feature-icon red-bg">
+                    <i class="fas fa-heartbeat"></i>
                 </div>
-                <div class="button-wrapper mt-auto">
-                    <a href="{{ url_for('health_records.index') }}" class="feature-btn red-btn">
-                        Health Records <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+                <h2>Health Records</h2>
+                <p>Monitor health status and medical treatments.</p>
+                <a href="{{ url_for('health_records.index') }}" class="feature-btn red-btn">
+                    Health Records <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
         <!-- Production Tracking -->
         <div class="col-md-4">
-            <div class="feature-box d-flex flex-column">
-                <div class="content-wrapper">
-                    <div class="feature-icon green-bg">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h2>Production Tracking</h2>
-                    <p>Monitor and analyze farm production data.</p>
+            <div class="feature-box">
+                <div class="feature-icon green-bg">
+                    <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="button-wrapper mt-auto">
-                    <a href="#" class="feature-btn green-btn">
-                        View Production <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+                <h2>Production Tracking</h2>
+                <p>Monitor and analyze farm production data.</p>
+                <a href="#" class="feature-btn green-btn">
+                    View Production <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
         <!-- Feed Management -->
         <div class="col-md-4">
-            <div class="feature-box d-flex flex-column">
-                <div class="content-wrapper">
-                    <div class="feature-icon orange-bg">
-                        <i class="fas fa-wheat-awn"></i>
-                    </div>
-                    <h2>Feed Management</h2>
-                    <p>Track feed inventory and consumption.</p>
+            <div class="feature-box">
+                <div class="feature-icon orange-bg">
+                    <i class="fas fa-wheat-awn"></i>
                 </div>
-                <div class="button-wrapper mt-auto">
-                    <a href="#" class="feature-btn orange-btn">
-                        Manage Feed <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+                <h2>Feed Management</h2>
+                <p>Track feed inventory and consumption.</p>
+                <a href="#" class="feature-btn orange-btn">
+                    Manage Feed <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
         <!-- Financial Records -->
         <div class="col-md-4">
-            <div class="feature-box d-flex flex-column">
-                <div class="content-wrapper">
-                    <div class="feature-icon purple-bg">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <h2>Financial Records</h2>
-                    <p>Track income, expenses and profits.</p>
+            <div class="feature-box">
+                <div class="feature-icon purple-bg">
+                    <i class="fas fa-dollar-sign"></i>
                 </div>
-                <div class="button-wrapper mt-auto">
-                    <a href="#" class="feature-btn purple-btn">
-                        View Finances <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+                <h2>Financial Records</h2>
+                <p>Track income, expenses and profits.</p>
+                <a href="#" class="feature-btn purple-btn">
+                    View Finances <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
         <!-- Reports -->
         <div class="col-md-4">
-            <div class="feature-box d-flex flex-column">
-                <div class="content-wrapper">
-                    <div class="feature-icon teal-bg">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <h2>Reports</h2>
-                    <p>Generate comprehensive farm reports.</p>
+            <div class="feature-box">
+                <div class="feature-icon teal-bg">
+                    <i class="fas fa-file-alt"></i>
                 </div>
-                <div class="button-wrapper mt-auto">
-                    <a href="#" class="feature-btn teal-btn">
-                        View Reports <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
+                <h2>Reports</h2>
+                <p>Generate comprehensive farm reports.</p>
+                <a href="#" class="feature-btn teal-btn">
+                    View Reports <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
     </div>
@@ -130,8 +106,6 @@
 <style>
     .hero-section {
         padding: 3rem 0;
-        background: linear-gradient(to right, #f8f9fa, #e9ecef);
-        border-radius: 15px;
     }
 
     .hero-section h1 {
@@ -143,9 +117,6 @@
         width: 60%;
         margin: 2rem auto;
         border-top: 2px solid #e9ecef;
-        background: linear-gradient(to right, transparent, #3498db, transparent);
-        height: 2px;
-        border: none;
     }
 
     .subtitle {
@@ -156,25 +127,15 @@
     .feature-box {
         background: white;
         padding: 2rem;
-        border-radius: 15px;
+        border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         height: 100%;
-        text-align: center;
-        min-height: 300px;
     }
 
     .feature-box:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .content-wrapper {
-        flex-grow: 1;
-    }
-
-    .button-wrapper {
-        padding-top: 1rem;
     }
 
     .feature-icon {
@@ -184,12 +145,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 1.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .feature-box:hover .feature-icon {
-        transform: scale(1.1) rotate(5deg);
+        margin-bottom: 1.5rem;
     }
 
     .feature-icon i {
@@ -206,18 +162,16 @@
     .feature-box p {
         color: #6c757d;
         margin-bottom: 1.5rem;
-        min-height: 48px;
     }
 
     .feature-btn {
         display: inline-flex;
         align-items: center;
-        padding: 0.8rem 1.8rem;
+        padding: 0.5rem 1.5rem;
         border-radius: 50px;
         color: white;
         text-decoration: none;
         transition: all 0.3s ease;
-        font-weight: 500;
     }
 
     .feature-btn i {
@@ -248,28 +202,5 @@
     .orange-btn { background: #f39c12; }
     .purple-btn { background: #9b59b6; }
     .teal-btn { background: #1abc9c; }
-
-    /* Animation */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .feature-box {
-        animation: fadeInUp 0.5s ease-out forwards;
-    }
-
-    .row > div:nth-child(1) .feature-box { animation-delay: 0.1s; }
-    .row > div:nth-child(2) .feature-box { animation-delay: 0.2s; }
-    .row > div:nth-child(3) .feature-box { animation-delay: 0.3s; }
-    .row > div:nth-child(4) .feature-box { animation-delay: 0.4s; }
-    .row > div:nth-child(5) .feature-box { animation-delay: 0.5s; }
-    .row > div:nth-child(6) .feature-box { animation-delay: 0.6s; }
 </style>
 {% endblock %}
