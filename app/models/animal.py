@@ -3,52 +3,52 @@ from datetime import datetime
 
 class Animal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tag_number = db.Column(db.String(50), unique=True, nullable=False)
-    name = db.Column(db.String(100))
-    species = db.Column(db.String(50), nullable=False)  # Sheep, Cattle, Chicken, Other
-    breed = db.Column(db.String(50))
-    date_of_birth = db.Column(db.Date)
-    gender = db.Column(db.String(20))
-    weight = db.Column(db.Float)
-    status = db.Column(db.String(20), default='active')  # active, sold, deceased
-    purchase_date = db.Column(db.Date)
-    purchase_price = db.Column(db.Float)
-    notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    tag_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=True)  # Explicitly mark as nullable
+    species = db.Column(db.String(50), nullable=False, index=True)
+    breed = db.Column(db.String(50), nullable=True)
+    date_of_birth = db.Column(db.Date, nullable=True)
+    gender = db.Column(db.String(20), nullable=True)
+    weight = db.Column(db.Float, nullable=True)
+    status = db.Column(db.String(20), default='active', nullable=False)
+    purchase_date = db.Column(db.Date, nullable=True)
+    purchase_price = db.Column(db.Float, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
-    # Sheep-specific fields
-    wool_type = db.Column(db.String(50))
-    last_shearing = db.Column(db.Date)
-    fleece_weight = db.Column(db.Float)
-    wool_grade = db.Column(db.String(20))
-    lambing_status = db.Column(db.String(50))
-    lambing_date = db.Column(db.Date)
+    # Sheep-specific fields - all nullable
+    wool_type = db.Column(db.String(50), nullable=True)
+    last_shearing = db.Column(db.Date, nullable=True)
+    fleece_weight = db.Column(db.Float, nullable=True)
+    wool_grade = db.Column(db.String(20), nullable=True)
+    lambing_status = db.Column(db.String(50), nullable=True)
+    lambing_date = db.Column(db.Date, nullable=True)
     
-    # Cattle-specific fields
-    milk_production = db.Column(db.Float)  # Daily milk production in liters
-    last_milking = db.Column(db.DateTime)
-    milk_quality = db.Column(db.String(20))
-    calving_status = db.Column(db.String(50))
-    calving_date = db.Column(db.Date)
-    milk_fat_content = db.Column(db.Float)
+    # Cattle-specific fields - all nullable
+    milk_production = db.Column(db.Float, nullable=True)
+    last_milking = db.Column(db.Date, nullable=True)  # Changed from DateTime to Date
+    milk_quality = db.Column(db.String(20), nullable=True)
+    calving_status = db.Column(db.String(50), nullable=True)
+    calving_date = db.Column(db.Date, nullable=True)
+    milk_fat_content = db.Column(db.Float, nullable=True)
     
-    # Chicken-specific fields
-    egg_production = db.Column(db.Integer)  # Daily egg production
-    egg_color = db.Column(db.String(20))
-    comb_type = db.Column(db.String(20))
-    laying_status = db.Column(db.String(20))
-    last_laying_date = db.Column(db.Date)
-    egg_size = db.Column(db.String(20))
+    # Chicken-specific fields - all nullable
+    egg_production = db.Column(db.Integer, nullable=True)
+    egg_color = db.Column(db.String(20), nullable=True)
+    comb_type = db.Column(db.String(20), nullable=True)
+    laying_status = db.Column(db.String(20), nullable=True)
+    last_laying_date = db.Column(db.Date, nullable=True)
+    egg_size = db.Column(db.String(20), nullable=True)
     
-    # Other animal fields
-    category = db.Column(db.String(50))  # For other animals: type of animal
-    special_needs = db.Column(db.Text)
-    diet_requirements = db.Column(db.Text)
-    habitat = db.Column(db.String(100))
+    # Other animal fields - all nullable
+    category = db.Column(db.String(50), nullable=True)
+    special_needs = db.Column(db.Text, nullable=True)
+    diet_requirements = db.Column(db.Text, nullable=True)
+    habitat = db.Column(db.String(100), nullable=True)
     
-    # Relationships
-    health_records = db.relationship('HealthRecord', backref='animal', lazy=True)
+    # Relationships with cascade delete
+    health_records = db.relationship('HealthRecord', backref='animal', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Animal {self.tag_number}>'
@@ -90,17 +90,18 @@ class Animal(db.Model):
                 'habitat': self.habitat
             }
 
+
 class HealthRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    animal_id = db.Column(db.Integer, db.ForeignKey('animal.id'), nullable=False)
-    record_type = db.Column(db.String(50))  # vaccination, treatment, checkup
+    animal_id = db.Column(db.Integer, db.ForeignKey('animal.id', ondelete='CASCADE'), nullable=False)
+    record_type = db.Column(db.String(50), nullable=False)  # Made nullable=False
     date = db.Column(db.Date, nullable=False)
-    description = db.Column(db.Text)
-    treatment = db.Column(db.Text)
-    cost = db.Column(db.Float)
-    next_due_date = db.Column(db.Date)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    description = db.Column(db.Text, nullable=True)
+    treatment = db.Column(db.Text, nullable=True)
+    cost = db.Column(db.Float, nullable=True)
+    next_due_date = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     
     def __repr__(self):
         return f'<HealthRecord {self.id} for Animal {self.animal_id}>'
