@@ -19,9 +19,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Animals</h1>
         <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                Add New Animal
-            </button>
+            
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="{{ url_for('animals.add', type='sheep') }}">
                     <i class="fas fa-sheep me-2"></i>Add Sheep
@@ -39,6 +37,61 @@
             </ul>
         </div>
     </div>
+    <!-- Search Bar Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form class="d-flex gap-2" method="GET" action="{{ url_for('animals.index') }}">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search by tag number, name, or breed..." 
+                           name="search" value="{{ search_query or '' }}">
+                    <select class="form-select" name="type" style="max-width: 150px;">
+                        <option value="all" {% if animal_type == 'all' %}selected{% endif %}>All Animals</option>
+                        <option value="sheep" {% if animal_type == 'sheep' %}selected{% endif %}>Sheep</option>
+                        <option value="cattle" {% if animal_type == 'cattle' %}selected{% endif %}>Cattle</option>
+                        <option value="chicken" {% if animal_type == 'chicken' %}selected{% endif %}>Chicken</option>
+                        <option value="other" {% if animal_type == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-1"></i> Search
+                    </button>
+                </div>
+                {% if search_query or animal_type != 'all' %}
+                <a href="{{ url_for('animals.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-times me-1"></i> Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Add New Animal
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{{ url_for('animals.add', type='sheep') }}">
+                        <i class="fas fa-sheep me-2"></i>Add Sheep
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('animals.add', type='cattle') }}">
+                        <i class="fas fa-cow me-2"></i>Add Cattle
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('animals.add', type='chicken') }}">
+                        <i class="fas fa-kiwi-bird me-2"></i>Add Chicken
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('animals.add', type='other') }}">
+                        <i class="fas fa-paw me-2"></i>Add Other Animal
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Results Message -->
+    {% if search_query and not sheep_list and not cattle_list and not chicken_list and not other_list %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>No animals found matching your search criteria.
+    </div>
+    {% endif %}
 
     <!-- Sheep Section -->
     <div class="card mb-4" id="sheep-section">
@@ -591,4 +644,5 @@
                 }
             </script>
             {% endblock %}
-        {% endblock content %}           
+        {% endblock content %} 
+        
