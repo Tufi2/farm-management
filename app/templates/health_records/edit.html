@@ -4,62 +4,214 @@
 
 {% block content %}
 <div class="container">
+    <!-- Add Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle"></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-lg-10">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-edit me-2"></i>Edit Health Record
-                    </h3>
+                    <h2 class="h5 mb-0">Edit Sheep Health Record</h2>
                 </div>
                 <div class="card-body">
-                    <form method="POST">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="record_type" class="form-label">Record Type *</label>
-                                <select class="form-select" id="record_type" name="record_type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="Vaccination" {% if record.record_type == 'Vaccination' %}selected{% endif %}>Vaccination</option>
-                                    <option value="Treatment" {% if record.record_type == 'Treatment' %}selected{% endif %}>Treatment</option>
-                                    <option value="Checkup" {% if record.record_type == 'Checkup' %}selected{% endif %}>Checkup</option>
-                                    <option value="Other" {% if record.record_type == 'Other' %}selected{% endif %}>Other</option>
+                    <form method="POST" id="healthRecordForm">
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Basic Information</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="tag_number" class="form-label">Tag Number</label>
+                                <input type="text" class="form-control" value="{{ record.animal.tag_number }}" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Health Status -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Health Status</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="health_status" class="form-label">Current Health Status *</label>
+                                <select class="form-select" id="health_status" name="health_status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Healthy" {% if health_status == 'Healthy' %}selected{% endif %}>Healthy</option>
+                                    <option value="Sick" {% if health_status == 'Sick' %}selected{% endif %}>Sick</option>
+                                    <option value="Treatment" {% if health_status == 'Treatment' %}selected{% endif %}>Under Treatment</option>
+                                    <option value="Observation" {% if health_status == 'Observation' %}selected{% endif %}>Under Observation</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label for="date" class="form-label">Date *</label>
-                                <input type="date" class="form-control" id="date" name="date" 
-                                       value="{{ record.date.strftime('%Y-%m-%d') }}" required>
+                            <div class="col-md-6 mb-3">
+                                <label for="vaccination_status" class="form-label">Vaccination Status</label>
+                                <select class="form-select" id="vaccination_status" name="vaccination_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Up to Date" {% if vaccination_status == 'Up to Date' %}selected{% endif %}>Up to Date</option>
+                                    <option value="Due" {% if vaccination_status == 'Due' %}selected{% endif %}>Due for Vaccination</option>
+                                    <option value="Overdue" {% if vaccination_status == 'Overdue' %}selected{% endif %}>Overdue</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description *</label>
-                            <textarea class="form-control" id="description" name="description" rows="3" required>{{ record.description }}</textarea>
+                        <!-- Copy all other sections from add.html and add the selected attribute for each field -->
+                        <!-- Include Lambing History, Foot Health, Flock Behavior, Wool Quality, and Parasite Control sections -->
+                        <!-- For each field, add the value from the record -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Lambing History</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="pregnancy_status" class="form-label">Pregnancy Status</label>
+                                <select class="form-select" id="pregnancy_status" name="pregnancy_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Not Pregnant">Not Pregnant</option>
+                                    <option value="Pregnant">Pregnant</option>
+                                    <option value="Lambing Soon">Lambing Soon</option>
+                                    <option value="Recently Lambed">Recently Lambed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="due_date" class="form-label">Expected Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="number_of_lambs" class="form-label">Number of Lambs</label>
+                                <input type="number" class="form-control" id="number_of_lambs" name="number_of_lambs" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lambing_ease" class="form-label">Lambing Ease</label>
+                                <select class="form-select" id="lambing_ease" name="lambing_ease">
+                                    <option value="">Select Ease</option>
+                                    <option value="Easy">Easy</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Difficult">Difficult</option>
+                                    <option value="Assisted">Assisted</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="lambing_notes" class="form-label">Lambing Notes</label>
+                                <textarea class="form-control" id="lambing_notes" name="lambing_notes" rows="3"
+                                          placeholder="Enter details about lambing history, complications, and offspring health"></textarea>
+                            </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="treatment" class="form-label">Treatment</label>
-                            <textarea class="form-control" id="treatment" name="treatment" rows="3">{{ record.treatment or '' }}</textarea>
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Foot Health</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="foot_condition" class="form-label">Foot Condition</label>
+                                <select class="form-select" id="foot_condition" name="foot_condition">
+                                    <option value="">Select Condition</option>
+                                    <option value="Healthy">Healthy</option>
+                                    <option value="Minor Issues">Minor Issues</option>
+                                    <option value="Foot Rot">Foot Rot</option>
+                                    <option value="Treatment Required">Treatment Required</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_foot_check" class="form-label">Last Foot Check Date</label>
+                                <input type="date" class="form-control" id="last_foot_check" name="last_foot_check">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="foot_notes" class="form-label">Foot Health Notes</label>
+                                <textarea class="form-control" id="foot_notes" name="foot_notes" rows="2"
+                                          placeholder="Enter any notes about foot health, treatments, or concerns"></textarea>
+                            </div>
+                        </div> 
+                        <!-- Flock Behavior -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Flock Behavior</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="behavior_pattern" class="form-label">Behavior Pattern</label>
+                                <select class="form-select" id="behavior_pattern" name="behavior_pattern">
+                                    <option value="">Select Pattern</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Isolated">Isolated</option>
+                                    <option value="Aggressive">Aggressive</option>
+                                    <option value="Stressed">Stressed</option>
+                                    <option value="Lethargic">Lethargic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="stress_level" class="form-label">Stress Level</label>
+                                <select class="form-select" id="stress_level" name="stress_level">
+                                    <option value="">Select Level</option>
+                                    <option value="None">None</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="behavior_notes" class="form-label">Behavioral Notes</label>
+                                <textarea class="form-control" id="behavior_notes" name="behavior_notes" rows="2"
+                                          placeholder="Enter any notable behavior observations, social interactions, or concerns"></textarea>
+                            </div>
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="cost" class="form-label">Cost</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" class="form-control" id="cost" name="cost" 
-                                           value="{{ "%.2f"|format(record.cost) if record.cost else '' }}">
+                        <!-- Wool Quality -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Wool Quality</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="wool_quality" class="form-label">Wool Condition</label>
+                                <select class="form-select" id="wool_quality" name="wool_quality">
+                                    <option value="">Select Condition</option>
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_shearing" class="form-label">Last Shearing Date</label>
+                                <input type="date" class="form-control" id="last_shearing" name="last_shearing">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="wool_texture" class="form-label">Wool Texture</label>
+                                <select class="form-select" id="wool_texture" name="wool_texture">
+                                    <option value="">Select Texture</option>
+                                    <option value="Fine">Fine</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Coarse">Coarse</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="next_shearing" class="form-label">Next Shearing Due</label>
+                                <input type="date" class="form-control" id="next_shearing" name="next_shearing">
+                            </div>
+                        </div>
+                        <!-- Parasite Control -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Parasite Control</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_check_date" class="form-label">Last Check Date</label>
+                                <input type="date" class="form-control" id="last_check_date" name="last_check_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="parasite_status" class="form-label">Parasite Status</label>
+                                <select class="form-select" id="parasite_status" name="parasite_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Clear">Clear</option>
+                                    <option value="Minor Infestation">Minor Infestation</option>
+                                    <option value="Severe Infestation">Severe Infestation</option>
+                                    <option value="Under Treatment">Under Treatment</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="treatment_details" class="form-label">Treatment Details</label>
+                                <textarea class="form-control" id="treatment_details" name="treatment_details" rows="3"
+                                          placeholder="Enter any treatment details"></textarea>
+                            </div>
+                        </div>
+                        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                            <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="toast-header">
+                                    <strong class="me-auto" id="toastTitle"></strong>
+                                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="next_due_date" class="form-label">Next Due Date</label>
-                                <input type="date" class="form-control" id="next_due_date" name="next_due_date" 
-                                       value="{{ record.next_due_date.strftime('%Y-%m-%d') if record.next_due_date else '' }}">
+                                <div class="toast-body" id="toastMessage"></div>
                             </div>
                         </div>
-
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ url_for('health_records.view', id=record.id) }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <a href="{{ url_for('health_records.view', id=record.id) }}" class="btn btn-secondary me-2">Cancel</a>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>
@@ -68,6 +220,7 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block styles %}
 <style>
@@ -81,6 +234,101 @@
     .form-label {
         font-weight: 500;
     }
+    .h6 {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    .mb-4 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1.5rem;
+    }
+    .mb-4:last-child {
+        border-bottom: none;
+    }
+
+    /* Toast notification styles */
+    .toast-container {
+        z-index: 1050;
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        min-width: 250px;
+    }
+
+    .toast {
+        background-color: white;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .toast.show {
+        opacity: 1;
+    }
+
+    .text-success {
+        color: #198754 !important;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
 </style>
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('healthRecordForm');
+    
+    // Form submission handling
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Disable submit button to prevent double submission
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        
+        try {
+            const formData = new FormData(this);
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast(data.message, 'success');
+                // Redirect after successful save
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('health_records.view', id=record.id) }}";
+                }, 1500);
+            } else {
+                showToast(data.message || 'Error saving record', 'error');
+                submitButton.disabled = false;
+            }
+        } catch (error) {
+            showToast('Error saving record', 'error');
+            submitButton.disabled = false;
+        }
+    });
+});
+
+// Toast notification system
+function showToast(message, type = 'success') {
+    const toast = new bootstrap.Toast(document.getElementById('toast'));
+    const toastBody = document.getElementById('toastMessage');
+    const toastHeader = document.getElementById('toastTitle');
+    
+    toastHeader.className = type === 'success' ? 'text-success' : 'text-danger';
+    toastHeader.textContent = type === 'success' ? 'Success' : 'Error';
+    toastBody.textContent = message;
+    
+    toast.show();
+}
+</script>
 {% endblock %}

@@ -4,7 +4,28 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mb-4">Health Records</h1>
+    <!-- Search Bar Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Health Records</h1>
+        <div class="col-md-6">
+            <form class="d-flex" method="GET" action="{{ url_for('health_records.index') }}">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search by tag number or status..." 
+                           name="search" value="{{ search_query or '' }}">
+                    <select class="form-select" name="type" style="max-width: 150px;">
+                        <option value="all" {% if record_type == 'all' %}selected{% endif %}>All Animals</option>
+                        <option value="sheep" {% if record_type == 'sheep' %}selected{% endif %}>Sheep</option>
+                        <option value="cattle" {% if record_type == 'cattle' %}selected{% endif %}>Cattle</option>
+                        <option value="goat" {% if record_type == 'goat' %}selected{% endif %}>Goat</option>
+                        <option value="chicken" {% if record_type == 'chicken' %}selected{% endif %}>Chicken</option>
+                    </select>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="row g-4">
         <!-- Sheep Section -->
@@ -12,14 +33,14 @@
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h2 class="h5 mb-0">
-                        <i class="fas fa-sheep me-2"></i>Sheep 
+                        <i class="fas fa-sheep me-2"></i>Sheep
                     </h2>
                     <div>
                         <a href="{{ url_for('health_records.add_sheep') }}" class="btn btn-light btn-sm me-2">
-                            <i class="fas fa-plus me-1"></i>Add Sheep
+                            <i class="fas fa-plus me-1"></i>Add Record
                         </a>
                         <a href="{{ url_for('health_records.list_by_type', animal_type='sheep') }}" class="btn btn-light btn-sm">
-                            View All
+                            <i class="fas fa-list me-1"></i>View All
                         </a>
                     </div>
                 </div>
@@ -32,33 +53,37 @@
                                     <th>Tag Number</th>
                                     <th>Breed</th>
                                     <th>Last Check</th>
-                                    <th>Health Status</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for record in sheep_records %}
                                 <tr>
-                                    <td>{{ record.tag_number }}</td>
-                                    <td>{{ record.breed }}</td>
-                                    <td>{{ record.last_check.strftime('%Y-%m-%d') if record.last_check else 'Not checked' }}</td>
+                                    <td>{{ record.animal.tag_number }}</td>
+                                    <td>{{ record.animal.breed or 'N/A' }}</td>
+                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
                                     <td>
-                                        <span class="badge {% if record.health_status == 'Healthy' %}bg-success
-                                                       {% elif record.health_status == 'Sick' %}bg-danger
-                                                       {% else %}bg-warning{% endif %}">
-                                            {{ record.health_status }}
+                                        <span class="badge {% if record.next_due_date and record.next_due_date < today %}bg-danger
+                                                       {% elif record.next_due_date == today %}bg-warning
+                                                       {% else %}bg-success{% endif %}">
+                                            {{ record.record_type }}
                                         </span>
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('health_records.view_sheep', id=record.id) }}" 
+                                            <a href="{{ url_for('health_records.view', id=record.id) }}" 
                                                class="btn btn-info" title="View">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ url_for('health_records.edit_sheep', id=record.id) }}" 
+                                            <a href="{{ url_for('health_records.edit', id=record.id) }}" 
                                                class="btn btn-warning" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            <button type="button" class="btn btn-danger" title="Delete" 
+                                                    onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -78,7 +103,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Cattle Section -->
         <div class="col-md-6">
             <div class="card">
@@ -86,69 +110,252 @@
                     <h2 class="h5 mb-0">
                         <i class="fas fa-cow me-2"></i>Cattle
                     </h2>
+                    <a href="{{ url_for('health_records.add_cattle') }}" class="btn btn-light btn-sm me-2">
+                        <i class="fas fa-plus me-1"></i>Add Record
+                    </a>
                     <a href="{{ url_for('health_records.list_by_type', animal_type='cattle') }}" class="btn btn-light btn-sm">
-                        View All
+                        <i class="fas fa-list me-1"></i>View All
                     </a>
                 </div>
                 <div class="card-body">
                     {% if cattle_records %}
                     <div class="table-responsive">
-                        <!-- Table content for cattle records -->
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tag Number</th>
+                                    <th>Breed</th>
+                                    <th>Last Check</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in cattle_records %}
+                                <tr>
+                                    <td>{{ record.animal.tag_number }}</td>
+                                    <td>{{ record.animal.breed or 'N/A' }}</td>
+                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge {% if record.next_due_date and record.next_due_date < today %}bg-danger
+                                                       {% elif record.next_due_date == today %}bg-warning
+                                                       {% else %}bg-success{% endif %}">
+                                            {{ record.record_type }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('health_records.view', id=record.id) }}" 
+                                               class="btn btn-info" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('health_records.edit', id=record.id) }}" 
+                                               class="btn btn-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-danger" title="Delete" 
+                                                    onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                     {% else %}
-                    <p class="text-muted text-center my-3">No health records for cattle</p>
+                    <div class="text-center py-4">
+                        <i class="fas fa-cow fa-2x text-muted mb-3"></i>
+                        <p class="text-muted mb-3">No health records for cattle</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
+       
 
-        <!-- Goat Section -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">
-                        <i class="fas fa-goat me-2"></i>Goat
-                    </h2>
-                    <a href="{{ url_for('health_records.list_by_type', animal_type='goat') }}" class="btn btn-light btn-sm">
-                        View All
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if goat_records %}
-                    <div class="table-responsive">
-                        <!-- Table content for goat records -->
-                    </div>
-                    {% else %}
-                    <p class="text-muted text-center my-3">No health records for goats</p>
-                    {% endif %}
-                </div>
+        <!-- Similar sections for Goat and Chicken, following the same structure -->
+        <!-- ... -->
+
+        <!-- Goats Section -->
+<div class="col-md-6">
+    <div class="card">
+        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-goat me-2"></i>Goats
+            </h2>
+            <div>
+                <a href="{{ url_for('health_records.add_goat') }}" class="btn btn-light btn-sm me-2">
+                    <i class="fas fa-plus me-1"></i>Add Record
+                </a>
+                <a href="{{ url_for('health_records.list_by_type', animal_type='goat') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
             </div>
         </div>
+        <div class="card-body">
+            {% if goat_records %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tag Number</th>
+                            <th>Breed</th>
+                            <th>Last Check</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in goat_records %}
+                        <tr>
+                            <td>{{ record.animal.tag_number }}</td>
+                            <td>{{ record.animal.breed or 'N/A' }}</td>
+                            <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <span class="badge {% if record.next_due_date and record.next_due_date < today %}bg-danger
+                                               {% elif record.next_due_date == today %}bg-warning
+                                               {% else %}bg-success{% endif %}">
+                                    {{ record.record_type }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('health_records.view', id=record.id) }}" 
+                                       class="btn btn-info" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('health_records.edit', id=record.id) }}" 
+                                       class="btn btn-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger" title="Delete" 
+                                            onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-goat fa-2x text-muted mb-3"></i>
+                <p class="text-muted mb-3">No health records for goats</p>
+                <a href="{{ url_for('health_records.add_goat') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>Add First Record
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-        <!-- Chicken Section -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">
-                        <i class="fas fa-kiwi-bird me-2"></i>Chicken 
-                    </h2>
-                    <a href="{{ url_for('health_records.list_by_type', animal_type='chicken') }}" class="btn btn-light btn-sm">
-                        View All
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if chicken_records %}
-                    <div class="table-responsive">
-                        <!-- Table content for chicken records -->
-                    </div>
-                    {% else %}
-                    <p class="text-muted text-center my-3">No health records for chickens</p>
-                    {% endif %}
-                </div>
+<!-- Chickens Section -->
+<div class="col-md-6">
+    <div class="card">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-kiwi-bird me-2"></i>Chickens
+            </h2>
+            <div>
+                <a href="{{ url_for('health_records.add_chicken') }}" class="btn btn-light btn-sm me-2">
+                    <i class="fas fa-plus me-1"></i>Add Record
+                </a>
+                <a href="{{ url_for('health_records.list_by_type', animal_type='chicken') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-list me-1"></i>View All
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if chicken_records %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tag Number</th>
+                            <th>Breed</th>
+                            <th>Last Check</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in chicken_records %}
+                        <tr>
+                            <td>{{ record.animal.tag_number }}</td>
+                            <td>{{ record.animal.breed or 'N/A' }}</td>
+                            <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <span class="badge {% if record.next_due_date and record.next_due_date < today %}bg-danger
+                                               {% elif record.next_due_date == today %}bg-warning
+                                               {% else %}bg-success{% endif %}">
+                                    {{ record.record_type }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('health_records.view', id=record.id) }}" 
+                                       class="btn btn-info" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('health_records.edit', id=record.id) }}" 
+                                       class="btn btn-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger" title="Delete" 
+                                            onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-kiwi-bird fa-2x text-muted mb-3"></i>
+                <p class="text-muted mb-3">No health records for chickens</p>
+                <a href="{{ url_for('health_records.add_chicken') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>Add First Record
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this health record for animal with tag number 
+                <span id="deleteTagNumber" class="fw-bold"></span>?
+                <p class="text-danger mt-2 mb-0"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block styles %}
 <style>
@@ -167,6 +374,42 @@
     .btn-light:hover {
         background-color: #fff;
     }
+    .search-highlight {
+        background-color: yellow;
+        padding: 0.1em 0.2em;
+        border-radius: 2px;
+    }
 </style>
 {% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(recordId, tagNumber) {
+    document.getElementById('deleteTagNumber').textContent = tagNumber;
+    document.getElementById('deleteForm').action = "{{ url_for('health_records.delete', id=0) }}".replace('0', recordId);
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function highlightSearchTerm() {
+    const searchQuery = new URLSearchParams(window.location.search).get('search');
+    if (searchQuery) {
+        const tables = document.querySelectorAll('.table tbody td:not(:last-child)');
+        const terms = searchQuery.toLowerCase().split(' ');
+        
+        tables.forEach(cell => {
+            const text = cell.textContent;
+            terms.forEach(term => {
+                if (term && text.toLowerCase().includes(term)) {
+                    cell.innerHTML = text.replace(
+                        new RegExp(term, 'gi'),
+                        match => `<span class="search-highlight">${match}</span>`
+                    );
+                }
+            });
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', highlightSearchTerm);
+</script>
 {% endblock %}

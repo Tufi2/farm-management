@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}{{ animal_type }} Health Records{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ animal_type }} Health Records</h1>
+        <div>
+            {% if animal_type == 'Sheep' %}
+                <a href="{{ url_for('health_records.add_sheep') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-plus me-1"></i>Add Record
+                </a>
+            {% elif animal_type == 'Cattle' %}
+                <a href="{{ url_for('health_records.add_cattle') }}" class="btn btn-success me-2">
+                    <i class="fas fa-plus me-1"></i>Add Record
+                </a>
+            {% elif animal_type == 'Goat' %}
+                <a href="{{ url_for('health_records.add_goat') }}" class="btn btn-warning me-2">
+                    <i class="fas fa-plus me-1"></i>Add Record
+                </a>
+            {% elif animal_type == 'Chicken' %}
+                <a href="{{ url_for('health_records.add_chicken') }}" class="btn btn-info me-2">
+                    <i class="fas fa-plus me-1"></i>Add Record
+                </a>
+            {% endif %}
+            <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Overview
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header {% if animal_type == 'Sheep' %}bg-primary
+                               {% elif animal_type == 'Cattle' %}bg-success
+                               {% elif animal_type == 'Goat' %}bg-warning
+                               {% elif animal_type == 'Chicken' %}bg-info{% endif %} text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-{% if animal_type == 'Sheep' %}sheep
+                               {% elif animal_type == 'Cattle' %}cow
+                               {% elif animal_type == 'Goat' %}goat
+                               {% elif animal_type == 'Chicken' %}kiwi-bird{% endif %} me-2"></i>
+                All {{ animal_type }} Records
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tag Number</th>
+                                <th>Name</th>
+                                <th>Breed</th>
+                                <th>Date</th>
+                                <th>Record Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td>{{ record.animal.tag_number }}</td>
+                                <td>{{ record.animal.name or 'N/A' }}</td>
+                                <td>{{ record.animal.breed or 'N/A' }}</td>
+                                <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ record.record_type }}</td>
+                                <td>
+                                    <span class="badge {% if record.next_due_date and record.next_due_date < today %}bg-danger
+                                                   {% elif record.next_due_date == today %}bg-warning
+                                                   {% else %}bg-success{% endif %}">
+                                        {% if record.next_due_date and record.next_due_date < today %}
+                                            Overdue
+                                        {% elif record.next_due_date == today %}
+                                            Due Today
+                                        {% else %}
+                                            Up to Date
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('health_records.view', id=record.id) }}" 
+                                           class="btn btn-info" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('health_records.edit', id=record.id) }}" 
+                                           class="btn btn-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger" title="Delete" 
+                                                onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-{% if animal_type == 'Sheep' %}sheep
+                                  {% elif animal_type == 'Cattle' %}cow
+                                  {% elif animal_type == 'Goat' %}goat
+                                  {% elif animal_type == 'Chicken' %}kiwi-bird{% endif %} 
+                       fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-3">No health records found for {{ animal_type }}</p>
+                    {% if animal_type == 'Sheep' %}
+                        <a href="{{ url_for('health_records.add_sheep') }}" class="btn btn-primary btn-sm">
+                    {% elif animal_type == 'Cattle' %}
+                        <a href="{{ url_for('health_records.add_cattle') }}" class="btn btn-success btn-sm">
+                    {% elif animal_type == 'Goat' %}
+                        <a href="{{ url_for('health_records.add_goat') }}" class="btn btn-warning btn-sm">
+                    {% elif animal_type == 'Chicken' %}
+                        <a href="{{ url_for('health_records.add_chicken') }}" class="btn btn-info btn-sm">
+                    {% endif %}
+                        <i class="fas fa-plus me-1"></i>Add First Record
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this health record for animal with tag number 
+                <span id="deleteTagNumber" class="fw-bold"></span>?
+                <p class="text-danger mt-2 mb-0"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    .table th {
+        font-weight: 600;
+    }
+    .btn-light {
+        background-color: rgba(255, 255, 255, 0.85);
+    }
+    .btn-light:hover {
+        background-color: #fff;
+    }
+    .badge {
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(recordId, tagNumber) {
+    document.getElementById('deleteTagNumber').textContent = tagNumber;
+    document.getElementById('deleteForm').action = "{{ url_for('health_records.delete', id=0) }}".replace('0', recordId);
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

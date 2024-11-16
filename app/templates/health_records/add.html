@@ -1,23 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}Add Sheep Health Record{% endblock %}
+{% block title %}Add Health Record{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h5 mb-0">Add Sheep Health Record</h2>
-                </div>
+                <div class="card-header {% if animal_type == 'Sheep' %}bg-primary
+                     {% elif animal_type == 'Cattle' %}bg-success
+                     {% elif animal_type == 'Goat' %}bg-warning
+                     {% elif animal_type == 'Chicken' %}bg-info{% endif %} text-white">
+    <h2 class="h5 mb-0">Add {{ animal_type }} Health Record</h2>
+</div>
                 <div class="card-body">
-                    <form method="POST">
+                    <form method="POST" id="healthRecordForm">
                         <!-- Basic Information -->
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Basic Information</h3>
-                            <div class="col-md-6">
-                                <label for="tag_number" class="form-label">Sheep Tag Number *</label>
+                            <div class="col-md-6 mb-3">
+                                <label for="tag_number" class="form-label">{{ animal_type }} Tag Number *</label>
                                 <input type="text" class="form-control" id="tag_number" name="tag_number" required>
+                                <div id="tagNumberFeedback" class="invalid-feedback">
+                                    {{ animal_type }} not found with this tag number.
+                                </div>
                             </div>
                         </div>
 
@@ -44,8 +50,7 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!-- Lambing History -->
+                        <!-- Lambing History (Enhanced) -->
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Lambing History</h3>
                             <div class="col-md-6 mb-3">
@@ -59,40 +64,29 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="last_lambing_date" class="form-label">Last Lambing Date</label>
-                                <input type="date" class="form-control" id="last_lambing_date" name="last_lambing_date">
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label for="lambing_notes" class="form-label">Lambing Notes</label>
-                                <textarea class="form-control" id="lambing_notes" name="lambing_notes" rows="2"
-                                          placeholder="Enter details about lamb health, complications, etc."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Parasite Control -->
-                        <div class="row mb-4">
-                            <h3 class="h6 text-muted mb-3">Parasite Control</h3>
-                            <div class="col-md-6 mb-3">
-                                <label for="parasite_check_date" class="form-label">Last Check Date</label>
-                                <input type="date" class="form-control" id="parasite_check_date" name="parasite_check_date">
+                                <label for="due_date" class="form-label">Expected Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="parasite_status" class="form-label">Parasite Status</label>
-                                <select class="form-select" id="parasite_status" name="parasite_status">
-                                    <option value="">Select Status</option>
-                                    <option value="Clear">Clear</option>
-                                    <option value="Minor Infestation">Minor Infestation</option>
-                                    <option value="Severe Infestation">Severe Infestation</option>
-                                    <option value="Under Treatment">Under Treatment</option>
+                                <label for="number_of_lambs" class="form-label">Number of Lambs</label>
+                                <input type="number" class="form-control" id="number_of_lambs" name="number_of_lambs" min="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lambing_ease" class="form-label">Lambing Ease</label>
+                                <select class="form-select" id="lambing_ease" name="lambing_ease">
+                                    <option value="">Select Ease</option>
+                                    <option value="Easy">Easy</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Difficult">Difficult</option>
+                                    <option value="Assisted">Assisted</option>
                                 </select>
                             </div>
                             <div class="col-12 mb-3">
-                                <label for="parasite_treatment" class="form-label">Treatment Details</label>
-                                <textarea class="form-control" id="parasite_treatment" name="parasite_treatment" rows="2"
-                                          placeholder="Enter treatment details if any"></textarea>
+                                <label for="lambing_notes" class="form-label">Lambing Notes</label>
+                                <textarea class="form-control" id="lambing_notes" name="lambing_notes" rows="3"
+                                          placeholder="Enter details about lambing history, complications, and offspring health"></textarea>
                             </div>
                         </div>
-
                         <!-- Foot Health -->
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Foot Health</h3>
@@ -103,7 +97,7 @@
                                     <option value="Healthy">Healthy</option>
                                     <option value="Minor Issues">Minor Issues</option>
                                     <option value="Foot Rot">Foot Rot</option>
-                                    <option value="Under Treatment">Under Treatment</option>
+                                    <option value="Treatment Required">Treatment Required</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -111,12 +105,11 @@
                                 <input type="date" class="form-control" id="last_foot_check" name="last_foot_check">
                             </div>
                             <div class="col-12 mb-3">
-                                <label for="foot_treatment" class="form-label">Foot Treatment Notes</label>
-                                <textarea class="form-control" id="foot_treatment" name="foot_treatment" rows="2"
-                                          placeholder="Enter any foot treatment details"></textarea>
+                                <label for="foot_notes" class="form-label">Foot Health Notes</label>
+                                <textarea class="form-control" id="foot_notes" name="foot_notes" rows="2"
+                                          placeholder="Enter any notes about foot health, treatments, or concerns"></textarea>
                             </div>
-                        </div>
-
+                        </div> 
                         <!-- Flock Behavior -->
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Flock Behavior</h3>
@@ -144,14 +137,83 @@
                             <div class="col-12 mb-3">
                                 <label for="behavior_notes" class="form-label">Behavioral Notes</label>
                                 <textarea class="form-control" id="behavior_notes" name="behavior_notes" rows="2"
-                                          placeholder="Enter any notable behavior observations"></textarea>
+                                          placeholder="Enter any notable behavior observations, social interactions, or concerns"></textarea>
+                            </div>
+                        </div>
+                        <!-- Wool Quality -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Wool Quality</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="wool_quality" class="form-label">Wool Condition</label>
+                                <select class="form-select" id="wool_quality" name="wool_quality">
+                                    <option value="">Select Condition</option>
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_shearing" class="form-label">Last Shearing Date</label>
+                                <input type="date" class="form-control" id="last_shearing" name="last_shearing">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="wool_texture" class="form-label">Wool Texture</label>
+                                <select class="form-select" id="wool_texture" name="wool_texture">
+                                    <option value="">Select Texture</option>
+                                    <option value="Fine">Fine</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Coarse">Coarse</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="next_shearing" class="form-label">Next Shearing Due</label>
+                                <input type="date" class="form-control" id="next_shearing" name="next_shearing">
+                            </div>
+                        </div>
+                     
+
+                        <!-- Parasite Control -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Parasite Control</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_check_date" class="form-label">Last Check Date</label>
+                                <input type="date" class="form-control" id="last_check_date" name="last_check_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="parasite_status" class="form-label">Parasite Status</label>
+                                <select class="form-select" id="parasite_status" name="parasite_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Clear">Clear</option>
+                                    <option value="Minor Infestation">Minor Infestation</option>
+                                    <option value="Severe Infestation">Severe Infestation</option>
+                                    <option value="Under Treatment">Under Treatment</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="treatment_details" class="form-label">Treatment Details</label>
+                                <textarea class="form-control" id="treatment_details" name="treatment_details" rows="3"
+                                          placeholder="Enter any treatment details"></textarea>
+                            </div>
+                        </div>
+                        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                            <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="toast-header">
+                                    <strong class="me-auto" id="toastTitle"></strong>
+                                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                                <div class="toast-body" id="toastMessage"></div>
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Save Record</button>
+                            <button type="submit" class="btn {% if animal_type == 'Sheep' %}btn-primary
+                                                            {% elif animal_type == 'Cattle' %}btn-success
+                                                            {% elif animal_type == 'Goat' %}btn-warning
+                                                            {% elif animal_type == 'Chicken' %}btn-info{% endif %}">
+                                Save Record
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -160,11 +222,15 @@
     </div>
 </div>
 {% endblock %}
-
 {% block styles %}
 <style>
+    /* Existing card and form styles */
     .card {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 2rem;
+    }
+    .card-header {
+        padding: 1rem;
     }
     .form-label {
         font-weight: 500;
@@ -180,5 +246,141 @@
     .mb-4:last-child {
         border-bottom: none;
     }
+
+    /* Toast notification styles */
+    .toast-container {
+        z-index: 1050;
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        min-width: 250px;
+    }
+
+    .toast {
+        background-color: white;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .toast.show {
+        opacity: 1;
+    }
+
+    .toast-header {
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .toast-body {
+        padding: 0.75rem;
+    }
+
+    .text-success {
+        color: #198754 !important;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    /* Additional animation for toast */
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .toast.show {
+        animation: slideIn 0.3s ease-in-out;
+    }
 </style>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tagInput = document.getElementById('tag_number');
+    const form = document.getElementById('healthRecordForm');
+    
+    // Validate tag number exists
+    tagInput.addEventListener('blur', async function() {
+        const tagNumber = this.value.trim();
+        if (tagNumber) {
+            try {
+                const response = await fetch(`/health-records/get-animal/${tagNumber}`);
+                const data = await response.json();
+                
+                if (response.ok && data.species === '{{ animal_type }}') {
+    tagInput.classList.remove('is-invalid');
+    tagInput.classList.add('is-valid');
+} else {
+    tagInput.classList.remove('is-valid');
+    tagInput.classList.add('is-invalid');
+    document.getElementById('tagNumberFeedback').textContent = 
+        `${tagNumber} is not a valid {{ animal_type }} tag number.`;
+}   
+            } catch (error) {
+                console.error('Error checking tag number:', error);
+            }
+        }
+    });
+
+    // Form submission handling
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Disable submit button to prevent double submission
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        
+        try {
+            const formData = new FormData(this);
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast(data.message, 'success');
+                // Redirect after successful save
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('health_records.index') }}";
+                }, 1500);
+            } else {
+                showToast(data.message || 'Error saving record', 'error');
+                submitButton.disabled = false;
+            }
+        } catch (error) {
+            showToast('Error saving record', 'error');
+            submitButton.disabled = false;
+        }
+    });
+});
+
+// Toast notification system
+function showToast(message, type = 'success') {
+    const toast = new bootstrap.Toast(document.getElementById('toast'));
+    const toastBody = document.getElementById('toastMessage');
+    const toastHeader = document.getElementById('toastTitle');
+    
+    toastHeader.className = type === 'success' ? 'text-success' : 'text-danger';
+    toastHeader.textContent = type === 'success' ? 'Success' : 'Error';
+    toastBody.textContent = message;
+    
+    toast.show();
+}
+</script>
 {% endblock %}

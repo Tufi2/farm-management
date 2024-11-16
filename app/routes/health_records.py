@@ -1,42 +1,50 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, json, jsonify, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
 from app.models.animal import Animal, HealthRecord
 from datetime import datetime, date
+from sqlalchemy import or_
 
 bp = Blueprint('health_records', __name__, url_prefix='/health-records')
 
 @bp.route('/')
 @login_required
 def index():
-    """Display health records organized by animal type"""
-    today = date.today()
+    """Display health records with search functionality"""
+    search_query = request.args.get('search', '').strip()
+    record_type = request.args.get('type', 'all').lower()
+    
+    # Base query
+    base_query = HealthRecord.query.join(Animal)
+    
+    # Apply search if provided
+    if search_query:
+        base_query = base_query.filter(
+            or_(
+                Animal.tag_number.ilike(f'%{search_query}%'),
+                Animal.name.ilike(f'%{search_query}%'),
+                HealthRecord.record_type.ilike(f'%{search_query}%'),
+                HealthRecord.description.ilike(f'%{search_query}%')
+            )
+        )
     
     # Get records for each animal type
-    sheep_records = (HealthRecord.query
-                    .join(Animal)
-                    .filter(Animal.species == 'Sheep')
+    sheep_records = (base_query.filter(Animal.species == 'Sheep')
                     .order_by(HealthRecord.date.desc())
                     .limit(5)
                     .all())
     
-    cattle_records = (HealthRecord.query
-                     .join(Animal)
-                     .filter(Animal.species == 'Cattle')
+    cattle_records = (base_query.filter(Animal.species == 'Cattle')
                      .order_by(HealthRecord.date.desc())
                      .limit(5)
                      .all())
     
-    goat_records = (HealthRecord.query
-                   .join(Animal)
-                   .filter(Animal.species == 'Goat')
+    goat_records = (base_query.filter(Animal.species == 'Goat')
                    .order_by(HealthRecord.date.desc())
                    .limit(5)
                    .all())
     
-    chicken_records = (HealthRecord.query
-                      .join(Animal)
-                      .filter(Animal.species == 'Chicken')
+    chicken_records = (base_query.filter(Animal.species == 'Chicken')
                       .order_by(HealthRecord.date.desc())
                       .limit(5)
                       .all())
@@ -46,65 +54,8 @@ def index():
                          cattle_records=cattle_records,
                          goat_records=goat_records,
                          chicken_records=chicken_records,
-                         today=today)
-
-@bp.route('/sheep')
-@login_required
-def sheep_list():
-    """Display all sheep health records"""
-    today = date.today()
-    records = (HealthRecord.query
-              .join(Animal)
-              .filter(Animal.species == 'Sheep')
-              .order_by(HealthRecord.date.desc())
-              .all())
-    return render_template('health_records/list.html',
-                         records=records,
-                         animal_type='Sheep',
-                         today=today)
-
-@bp.route('/sheep/add', methods=['GET', 'POST'])
-@login_required
-def add_sheep():
-    """Add a new sheep health record"""
-    if request.method == 'POST':
-        try:
-            # Get the sheep by tag number
-            tag_number = request.form.get('tag_number')
-            sheep = Animal.query.filter_by(tag_number=tag_number, species='Sheep').first()
-            
-            if not sheep:
-                flash('Sheep not found with this tag number', 'danger')
-                return redirect(url_for('health_records.add_sheep'))
-
-            record = HealthRecord(
-                animal_id=sheep.id,
-                record_type='Health Check',
-                date=datetime.strptime(request.form.get('date'), '%Y-%m-%d').date(),
-                description=request.form.get('symptoms'),
-                treatment=request.form.get('treatment'),
-                cost=float(request.form.get('medication_cost')) if request.form.get('medication_cost') else None,
-                next_due_date=datetime.strptime(request.form.get('next_checkup'), '%Y-%m-%d').date() if request.form.get('next_checkup') else None,
-                created_by_id=current_user.id,
-                created_at=datetime.utcnow()
-            )
-            
-            db.session.add(record)
-            db.session.commit()
-            
-            flash('Sheep health record added successfully!', 'success')
-            return redirect(url_for('health_records.sheep_list'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error adding health record: {str(e)}', 'danger')
-            return redirect(url_for('health_records.add_sheep'))
-    
-    # Get all sheep for the form dropdown
-    sheep = Animal.query.filter_by(species='Sheep').all()
-    return render_template('health_records/add.html',
-                         animals=sheep,
-                         animal_type='Sheep',
+                         search_query=search_query,
+                         record_type=record_type,
                          today=date.today())
 
 @bp.route('/type/<animal_type>')
@@ -116,6 +67,7 @@ def list_by_type(animal_type):
     # Capitalize the first letter for comparison with database
     species = animal_type.capitalize()
     
+    # Base query with joins and filters
     records = (HealthRecord.query
               .join(Animal)
               .filter(Animal.species == species)
@@ -126,6 +78,276 @@ def list_by_type(animal_type):
                          records=records,
                          animal_type=species,
                          today=today)
+@bp.route('/sheep/add', methods=['GET', 'POST'])
+@login_required
+def add_sheep():
+    if request.method == 'POST':
+        try:
+            # Get the sheep by tag number
+            tag_number = request.form.get('tag_number')
+            sheep = Animal.query.filter_by(tag_number=tag_number, species='Sheep').first()
+            
+            if not sheep:
+                flash('Sheep not found with this tag number', 'danger')
+                return redirect(url_for('health_records.add_sheep'))
+            
+            # Check if a health record already exists for today
+            existing_record = HealthRecord.query.filter_by(
+                animal_id=sheep.id,
+                date=date.today()
+            ).first()
+            
+            if existing_record:
+                flash('A health record already exists for this sheep today', 'warning')
+                return redirect(url_for('health_records.add_sheep'))
+
+            # Organize the description in a structured way
+            description = {
+                "Health Status": {
+                    "Current": request.form.get('health_status'),
+                    "Vaccination": request.form.get('vaccination_status')
+                },
+                "Wool Quality": {
+                    "Condition": request.form.get('wool_quality'),
+                    "Texture": request.form.get('wool_texture'),
+                    "Last Shearing": request.form.get('last_shearing'),
+                    "Next Shearing": request.form.get('next_shearing')
+                },
+                "Lambing": {
+                    "Status": request.form.get('pregnancy_status'),
+                    "Due Date": request.form.get('due_date'),
+                    "Number of Lambs": request.form.get('number_of_lambs'),
+                    "Lambing Ease": request.form.get('lambing_ease'),
+                    "Notes": request.form.get('lambing_notes')
+                },
+                "Foot Health": {
+                    "Condition": request.form.get('foot_condition'),
+                    "Last Check": request.form.get('last_foot_check'),
+                    "Notes": request.form.get('foot_notes')
+                },
+                "Behavior": {
+                    "Pattern": request.form.get('behavior_pattern'),
+                    "Stress Level": request.form.get('stress_level'),
+                    "Notes": request.form.get('behavior_notes')
+                }
+            }
+
+            record = HealthRecord(
+                animal_id=sheep.id,
+                record_type='Health Check',
+                date=date.today(),
+                description=json.dumps(description, indent=2),
+                treatment=request.form.get('treatment_details'),
+                created_by_id=current_user.id,
+                created_at=datetime.utcnow()
+            )
+            
+            db.session.add(record)
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Health record added successfully!'})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 400
+    
+    return render_template('health_records/add.html',
+                         animal_type='Sheep',
+                         today=date.today())
+@bp.route('/cattle/add', methods=['GET', 'POST'])
+@login_required
+def add_cattle():
+    if request.method == 'POST':
+        try:
+            # Get the cattle by tag number
+            tag_number = request.form.get('tag_number')
+            cattle = Animal.query.filter_by(tag_number=tag_number, species='Cattle').first()
+            
+            if not cattle:
+                flash('Cattle not found with this tag number', 'danger')
+                return redirect(url_for('health_records.add_cattle'))
+            
+            # Check for existing record today
+            existing_record = HealthRecord.query.filter_by(
+                animal_id=cattle.id,
+                date=date.today()
+            ).first()
+            
+            if existing_record:
+                flash('A health record already exists for this cattle today', 'warning')
+                return redirect(url_for('health_records.add_cattle'))
+
+            description = {
+                "Health Status": {
+                    "Current": request.form.get('health_status'),
+                    "Vaccination": request.form.get('vaccination_status')
+                },
+                "Production": {
+                    "Milk Production": request.form.get('milk_production'),
+                    "Milk Quality": request.form.get('milk_quality')
+                },
+                "Physical Condition": {
+                    "Weight": request.form.get('weight'),
+                    "Body Condition": request.form.get('body_condition'),
+                    "Notes": request.form.get('condition_notes')
+                },
+                "Behavior": {
+                    "Pattern": request.form.get('behavior_pattern'),
+                    "Notes": request.form.get('behavior_notes')
+                }
+            }
+
+            record = HealthRecord(
+                animal_id=cattle.id,
+                record_type='Health Check',
+                date=date.today(),
+                description=json.dumps(description, indent=2),
+                treatment=request.form.get('treatment_details'),
+                created_by_id=current_user.id,
+                created_at=datetime.utcnow()
+            )
+            
+            db.session.add(record)
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Health record added successfully!'})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 400
+    
+    return render_template('health_records/add.html',
+                         animal_type='Cattle',
+                         today=date.today())
+    
+
+@bp.route('/goat/add', methods=['GET', 'POST'])
+@login_required
+def add_goat():
+    if request.method == 'POST':
+        try:
+            tag_number = request.form.get('tag_number')
+            goat = Animal.query.filter_by(tag_number=tag_number, species='Goat').first()
+            
+            if not goat:
+                flash('Goat not found with this tag number', 'danger')
+                return redirect(url_for('health_records.add_goat'))
+            
+            existing_record = HealthRecord.query.filter_by(
+                animal_id=goat.id,
+                date=date.today()
+            ).first()
+            
+            if existing_record:
+                flash('A health record already exists for this goat today', 'warning')
+                return redirect(url_for('health_records.add_goat'))
+
+            description = {
+                "Health Status": {
+                    "Current": request.form.get('health_status'),
+                    "Vaccination": request.form.get('vaccination_status')
+                },
+                "Production": {
+                    "Milk Production": request.form.get('milk_production'),
+                    "Kidding Status": request.form.get('kidding_status')
+                },
+                "Physical Condition": {
+                    "Weight": request.form.get('weight'),
+                    "Body Condition": request.form.get('body_condition'),
+                    "Notes": request.form.get('condition_notes')
+                },
+                "Behavior": {
+                    "Pattern": request.form.get('behavior_pattern'),
+                    "Notes": request.form.get('behavior_notes')
+                }
+            }
+
+            record = HealthRecord(
+                animal_id=goat.id,
+                record_type='Health Check',
+                date=date.today(),
+                description=json.dumps(description, indent=2),
+                treatment=request.form.get('treatment_details'),
+                created_by_id=current_user.id,
+                created_at=datetime.utcnow()
+            )
+            
+            db.session.add(record)
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Health record added successfully!'})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 400
+    
+    return render_template('health_records/add.html',
+                         animal_type='Goat',
+                         today=date.today())
+    
+@bp.route('/chicken/add', methods=['GET', 'POST'])
+@login_required
+def add_chicken():
+    if request.method == 'POST':
+        try:
+            tag_number = request.form.get('tag_number')
+            chicken = Animal.query.filter_by(tag_number=tag_number, species='Chicken').first()
+            
+            if not chicken:
+                flash('Chicken not found with this tag number', 'danger')
+                return redirect(url_for('health_records.add_chicken'))
+            
+            existing_record = HealthRecord.query.filter_by(
+                animal_id=chicken.id,
+                date=date.today()
+            ).first()
+            
+            if existing_record:
+                flash('A health record already exists for this chicken today', 'warning')
+                return redirect(url_for('health_records.add_chicken'))
+
+            description = {
+                "Health Status": {
+                    "Current": request.form.get('health_status'),
+                    "Vaccination": request.form.get('vaccination_status')
+                },
+                "Production": {
+                    "Egg Production": request.form.get('egg_production'),
+                    "Egg Quality": request.form.get('egg_quality')
+                },
+                "Physical Condition": {
+                    "Weight": request.form.get('weight'),
+                    "Feather Condition": request.form.get('feather_condition'),
+                    "Notes": request.form.get('condition_notes')
+                },
+                "Behavior": {
+                    "Pattern": request.form.get('behavior_pattern'),
+                    "Notes": request.form.get('behavior_notes')
+                }
+            }
+
+            record = HealthRecord(
+                animal_id=chicken.id,
+                record_type='Health Check',
+                date=date.today(),
+                description=json.dumps(description, indent=2),
+                treatment=request.form.get('treatment_details'),
+                created_by_id=current_user.id,
+                created_at=datetime.utcnow()
+            )
+            
+            db.session.add(record)
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Health record added successfully!'})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 400
+    
+    return render_template('health_records/add.html',
+                         animal_type='Chicken',
+                         today=date.today()) 
 
 @bp.route('/add/<int:animal_id>', methods=['GET', 'POST'])
 @login_required
@@ -187,40 +409,63 @@ def view(id):
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit(id):
-    """Edit an existing health record"""
     record = HealthRecord.query.get_or_404(id)
+    
+    if request.method == 'GET':
+        # Parse the stored description JSON
+        description = json.loads(record.description)
+        return render_template('health_records/edit.html',
+                            record=record,
+                            description=description)
     
     if request.method == 'POST':
         try:
-            # Parse the date strings
-            record_date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
-            next_due_date = None
-            if request.form.get('next_due_date'):
-                next_due_date = datetime.strptime(request.form.get('next_due_date'), '%Y-%m-%d').date()
+            # Complete description structure matching add form
+            description = {
+                "Health Status": {
+                    "Current": request.form.get('health_status'),
+                    "Vaccination": request.form.get('vaccination_status')
+                },
+                "Wool Quality": {
+                    "Condition": request.form.get('wool_quality'),
+                    "Texture": request.form.get('wool_texture'),
+                    "Last Shearing": request.form.get('last_shearing'),
+                    "Next Shearing": request.form.get('next_shearing')
+                },
+                "Lambing": {
+                    "Status": request.form.get('pregnancy_status'),
+                    "Due Date": request.form.get('due_date'),
+                    "Number of Lambs": request.form.get('number_of_lambs'),
+                    "Lambing Ease": request.form.get('lambing_ease'),
+                    "Notes": request.form.get('lambing_notes')
+                },
+                "Foot Health": {
+                    "Condition": request.form.get('foot_condition'),
+                    "Last Check": request.form.get('last_foot_check'),
+                    "Notes": request.form.get('foot_notes')
+                },
+                "Behavior": {
+                    "Pattern": request.form.get('behavior_pattern'),
+                    "Stress Level": request.form.get('stress_level'),
+                    "Notes": request.form.get('behavior_notes')
+                },
+                "Parasite Control": {
+                    "Status": request.form.get('parasite_status'),
+                    "Last Check Date": request.form.get('last_check_date'),
+                    "Treatment Details": request.form.get('treatment_details')
+                }
+            }
             
-            # Parse cost if provided
-            cost = None
-            if request.form.get('cost'):
-                cost = float(request.form.get('cost'))
-            
-            record.record_type = request.form.get('record_type')
-            record.date = record_date
-            record.description = request.form.get('description')
-            record.treatment = request.form.get('treatment')
-            record.cost = cost
-            record.next_due_date = next_due_date
+            record.description = json.dumps(description, indent=2)
+            record.treatment = request.form.get('treatment_details')
+            record.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
             
             db.session.commit()
-            flash('Health record updated successfully!', 'success')
-            return redirect(url_for('health_records.view', id=record.id))
+            return jsonify({'success': True, 'message': 'Record updated successfully'})
             
         except Exception as e:
             db.session.rollback()
-            flash(f'Error updating health record: {str(e)}', 'danger')
-            return redirect(url_for('health_records.edit', id=record.id))
-    
-    return render_template('health_records/edit.html', record=record)
-
+            return jsonify({'success': False, 'message': str(e)}), 400
 @bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
 def delete(id):
@@ -264,3 +509,18 @@ def bulk_delete():
     except Exception as e:
         db.session.rollback()
         return str(e), 500
+    
+@bp.route('/get-animal/<tag_number>')
+@login_required
+def get_animal(tag_number):
+    """Get animal details by tag number"""
+    animal = Animal.query.filter_by(tag_number=tag_number).first()
+    if animal:
+        return jsonify({
+            'id': animal.id,
+            'name': animal.name,
+            'species': animal.species,
+            'breed': animal.breed
+        })
+    return jsonify({'error': 'Animal not found'}), 404
+    
