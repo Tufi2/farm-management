@@ -401,9 +401,17 @@ def add(animal_id):
 def view(id):
     """View a specific health record"""
     record = HealthRecord.query.get_or_404(id)
+    
+    # Parse the JSON description before passing to template
+    try:
+        description = json.loads(record.description) if record.description else {}
+    except:
+        description = {}
+        
     today = date.today()
     return render_template('health_records/view.html', 
                          record=record,
+                         description=description,  # Pass parsed description
                          today=today)
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
@@ -478,17 +486,18 @@ def delete(id):
         db.session.commit()
         flash('Health record deleted successfully!', 'success')
         
+        # Check if it's an AJAX request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return '', 204
+            return jsonify({'success': True}), 200
         
-        return redirect(url_for('animals.view', id=animal_id))
+        return redirect(url_for('health_records.index'))
         
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting health record: {str(e)}', 'danger')
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return 'Error deleting record', 500
+            return jsonify({'success': False, 'error': str(e)}), 400
         
         return redirect(url_for('health_records.view', id=id))
 
