@@ -4,6 +4,15 @@ from app import db
 from app.models.animal import Animal, HealthRecord
 from datetime import datetime, date
 from sqlalchemy import or_
+from flask import send_file
+import csv
+from io import StringIO, BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from datetime import datetime
+
 
 bp = Blueprint('health_records', __name__, url_prefix='/health-records')
 
@@ -399,20 +408,15 @@ def add(animal_id):
 @bp.route('/<int:id>')
 @login_required
 def view(id):
-    """View a specific health record"""
     record = HealthRecord.query.get_or_404(id)
-    
-    # Parse the JSON description before passing to template
     try:
         description = json.loads(record.description) if record.description else {}
     except:
         description = {}
-        
-    today = date.today()
     return render_template('health_records/view.html', 
                          record=record,
-                         description=description,  # Pass parsed description
-                         today=today)
+                         description=description,
+                         today=date.today())
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -532,4 +536,127 @@ def get_animal(tag_number):
             'breed': animal.breed
         })
     return jsonify({'error': 'Animal not found'}), 404
+@bp.route('/<int:id>/download/<format>')
+@login_required
+def download(id, format):
+    """Download health record in specified format"""
+    record = HealthRecord.query.get_or_404(id)
+    description = json.loads(record.description) if record.description else {}
+
+    if format == 'pdf':
+        # Create PDF
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Title
+        elements.append(Paragraph(f"Health Record - {record.animal.tag_number}", styles['Title']))
+        elements.append(Spacer(1, 20))
+
+        # Data to display
+        data = [
+            # Basic Information
+            ['Basic Information', ''],
+            ['Tag Number', record.animal.tag_number],
+            ['Animal Type', record.animal.species],
+            ['Record Date', record.date.strftime('%Y-%m-%d')],
+            ['', ''],  # Spacer row
+
+            # Health Status
+            ['Health Status', ''],
+            ['Current Status', description.get('Health Status', {}).get('Current', 'N/A')],
+            ['Vaccination Status', description.get('Health Status', {}).get('Vaccination', 'N/A')],
+            ['', ''],  # Spacer row
+        ]
+
+        # Add Wool Quality if it exists
+        if description.get('Wool Quality'):
+            data.extend([
+                ['Wool Quality', ''],
+                ['Condition', description['Wool Quality'].get('Condition', 'N/A')],
+                ['Texture', description['Wool Quality'].get('Texture', 'N/A')],
+                ['Last Shearing', description['Wool Quality'].get('Last Shearing', 'N/A')],
+                ['Next Shearing', description['Wool Quality'].get('Next Shearing', 'N/A')],
+                ['', ''],  # Spacer row
+            ])
+
+        # Add Lambing History if it exists
+        if description.get('Lambing'):
+            data.extend([
+                ['Lambing History', ''],
+                ['Status', description['Lambing'].get('Status', 'N/A')],
+                ['Due Date', description['Lambing'].get('Due Date', 'N/A')],
+                ['Number of Lambs', description['Lambing'].get('Number of Lambs', 'N/A')],
+                ['Lambing Ease', description['Lambing'].get('Lambing Ease', 'N/A')],
+                ['Notes', description['Lambing'].get('Notes', 'N/A')],
+                ['', ''],  # Spacer row
+            ])
+
+        # Create table
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(table)
+        
+        # Generate PDF
+        doc.build(elements)
+        buffer.seek(0)
+        
+        return send_file(
+            buffer,
+            download_name=f'health_record_{record.animal.tag_number}_{datetime.now().strftime("%Y%m%d")}.pdf',
+            mimetype='application/pdf'
+        )
+
+    elif format == 'csv':
+        # Create CSV
+        si = StringIO()
+        writer = csv.writer(si)
+        
+        # Write headers and data
+        writer.writerow(['Health Record Details'])
+        writer.writerow(['', ''])
+        
+        # Basic Information
+        writer.writerow(['Basic Information'])
+        writer.writerow(['Tag Number', record.animal.tag_number])
+        writer.writerow(['Animal Type', record.animal.species])
+        writer.writerow(['Record Date', record.date.strftime('%Y-%m-%d')])
+        writer.writerow(['', ''])
+
+        # Health Status
+        writer.writerow(['Health Status'])
+        writer.writerow(['Current Status', description.get('Health Status', {}).get('Current', 'N/A')])
+        writer.writerow(['Vaccination Status', description.get('Health Status', {}).get('Vaccination', 'N/A')])
+        writer.writerow(['', ''])
+
+        # Add more sections as needed...
+
+        # Create the CSV response
+        output = si.getvalue()
+        si.close()
+        
+        return send_file(
+            BytesIO(output.encode()),
+            download_name=f'health_record_{record.animal.tag_number}_{datetime.now().strftime("%Y%m%d")}.csv',
+            mimetype='text/csv'
+        )
+
+    return 'Invalid format', 400
     

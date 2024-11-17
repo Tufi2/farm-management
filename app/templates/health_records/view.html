@@ -3,104 +3,241 @@
 {% block title %}Health Record Details{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container mb-4">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Health Record Details</h1>
         <div>
             <a href="{{ url_for('health_records.edit', id=record.id) }}" class="btn btn-warning me-2">
                 <i class="fas fa-edit me-1"></i>Edit
             </a>
-            <button onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')" 
-                    class="btn btn-danger">
+            <button onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')" class="btn btn-danger">
                 <i class="fas fa-trash me-1"></i>Delete
             </button>
         </div>
     </div>
+    <!-- In the header section -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Health Record Details</h1>
+    <div>
+        <div class="dropdown d-inline-block me-2">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-download me-1"></i>Download
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('health_records.download', id=record.id, format='pdf') }}">
+                        <i class="fas fa-file-pdf me-2 text-danger"></i>Download as PDF
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('health_records.download', id=record.id, format='csv') }}">
+                        <i class="fas fa-file-csv me-2 text-success"></i>Download as CSV
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <a href="{{ url_for('health_records.edit', id=record.id) }}" class="btn btn-warning me-2">
+            <i class="fas fa-edit me-1"></i>Edit
+        </a>
+        <button onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')" class="btn btn-danger">
+            <i class="fas fa-trash me-1"></i>Delete
+        </button>
+    </div>
+</div>
 
-    <div class="card">
+    <!-- Basic Information Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-info-circle me-2"></i>Basic Information
+            </h2>
+        </div>
         <div class="card-body">
-            <!-- Basic Information -->
-            <div class="row mb-4">
-                <h3 class="h6 text-muted mb-3">Basic Information</h3>
-                <div class="col-md-6">
-                    <p><strong>Tag Number:</strong> {{ record.animal.tag_number }}</p>
-                    <p><strong>Animal Type:</strong> {{ record.animal.species }}</p>
-                    <p><strong>Record Date:</strong> {{ record.date.strftime('%Y-%m-%d') }}</p>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-muted">Tag Number</label>
+                    <div class="h5 text-primary">{{ record.animal.tag_number }}</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-muted">Animal Type</label>
+                    <div class="h5 text-primary">{{ record.animal.species }}</div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Health Status -->
-            {% if description.get('Health Status') %}
-            <div class="row mb-4">
-                <h3 class="h6 text-muted mb-3">Health Status</h3>
-                <div class="col-md-6">
-                    <p><strong>Current Status:</strong> {{ description['Health Status'].get('Current', 'N/A') }}</p>
-                    <p><strong>Vaccination Status:</strong> {{ description['Health Status'].get('Vaccination', 'N/A') }}</p>
+    <!-- Health Status Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-heartbeat me-2"></i>Health Status
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-muted">Current Status</label>
+                    <div>
+                        <span class="badge {% if description['Health Status'].get('Current') == 'Healthy' %}bg-success
+                                         {% elif description['Health Status'].get('Current') == 'Sick' %}bg-danger
+                                         {% else %}bg-warning{% endif %} fs-6">
+                            {{ description['Health Status'].get('Current', 'N/A') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-muted">Vaccination Status</label>
+                    <div>
+                        <span class="badge {% if description['Health Status'].get('Vaccination') == 'Up to Date' %}bg-success
+                                         {% elif description['Health Status'].get('Vaccination') == 'Due' %}bg-warning
+                                         {% else %}bg-danger{% endif %} fs-6">
+                            {{ description['Health Status'].get('Vaccination', 'N/A') }}
+                        </span>
+                    </div>
                 </div>
             </div>
-            {% endif %}
+        </div>
+    </div>
 
-            <!-- Show different sections based on animal type -->
-            {% if record.animal.species == 'Sheep' %}
-                <!-- Wool Quality -->
-                {% if description.get('Wool Quality') %}
-                <div class="row mb-4">
-                    <h3 class="h6 text-muted mb-3">Wool Quality</h3>
-                    <div class="col-md-6">
-                        <p><strong>Condition:</strong> {{ description['Wool Quality'].get('Condition', 'N/A') }}</p>
-                        <p><strong>Texture:</strong> {{ description['Wool Quality'].get('Texture', 'N/A') }}</p>
-                        <p><strong>Last Shearing:</strong> {{ description['Wool Quality'].get('Last Shearing', 'N/A') }}</p>
-                    </div>
+    <!-- Lambing History Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-baby me-2"></i>Lambing History
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Status</label>
+                    <div>{{ description['Lambing'].get('Status', 'N/A') }}</div>
                 </div>
-                {% endif %}
-
-                <!-- Lambing History -->
-                {% if description.get('Lambing') %}
-                <div class="row mb-4">
-                    <h3 class="h6 text-muted mb-3">Lambing History</h3>
-                    <div class="col-12">
-                        <p><strong>Status:</strong> {{ description['Lambing'].get('Status', 'N/A') }}</p>
-                        <p><strong>Due Date:</strong> {{ description['Lambing'].get('Due Date', 'N/A') }}</p>
-                        <p><strong>Notes:</strong> {{ description['Lambing'].get('Notes', 'N/A') }}</p>
-                    </div>
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Due Date</label>
+                    <div>{{ description['Lambing'].get('Due Date', 'N/A') }}</div>
                 </div>
-                {% endif %}
-            {% endif %}
-
-            <!-- Treatment Details -->
-            {% if record.treatment %}
-            <div class="row mb-4">
-                <h3 class="h6 text-muted mb-3">Treatment Details</h3>
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Number of Lambs</label>
+                    <div>{{ description['Lambing'].get('Number of Lambs', 'N/A') }}</div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Lambing Ease</label>
+                    <div>{{ description['Lambing'].get('Lambing Ease', 'N/A') }}</div>
+                </div>
                 <div class="col-12">
-                    <p>{{ record.treatment }}</p>
+                    <label class="fw-bold text-muted">Notes</label>
+                    <div class="alert alert-light">{{ description['Lambing'].get('Notes', 'No notes available') }}</div>
                 </div>
             </div>
-            {% endif %}
+        </div>
+    </div>
+
+    <!-- Wool Quality Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-wool me-2"></i>Wool Quality
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Condition</label>
+                    <div>{{ description['Wool Quality'].get('Condition', 'N/A') }}</div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Texture</label>
+                    <div>{{ description['Wool Quality'].get('Texture', 'N/A') }}</div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Last Shearing</label>
+                    <div>{{ description['Wool Quality'].get('Last Shearing', 'N/A') }}</div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="fw-bold text-muted">Next Shearing Due</label>
+                    <div>{{ description['Wool Quality'].get('Next Shearing', 'N/A') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Foot Health Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-shoe-prints me-2"></i>Foot Health
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="fw-bold text-muted">Condition</label>
+                    <div>{{ description['Foot Health'].get('Condition', 'N/A') }}</div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="fw-bold text-muted">Last Check</label>
+                    <div>{{ description['Foot Health'].get('Last Check', 'N/A') }}</div>
+                </div>
+                <div class="col-12">
+                    <label class="fw-bold text-muted">Notes</label>
+                    <div class="alert alert-light">{{ description['Foot Health'].get('Notes', 'No notes available') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Treatment Details Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-medkit me-2"></i>Treatment Details
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-light">
+                {{ record.treatment or 'No treatment details available' }}
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this health record?
-                <p class="text-danger mt-2 mb-0"><small>This action cannot be undone.</small></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- Your existing modal code -->
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        border-radius: 8px;
+    }
+    .card-header {
+        border-radius: 8px 8px 0 0;
+        padding: 1rem;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .badge {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+    }
+    .alert-light {
+        background-color: #f8f9fa;
+        border: 1px solid #eee;
+    }
+    label.text-muted {
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+    .h5 {
+        margin-bottom: 0;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
