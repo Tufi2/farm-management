@@ -112,6 +112,9 @@ def add_sheep():
 
             # Organize the description in a structured way
             description = {
+                "Basic Information": {
+                    "Weight": request.form.get('weight')
+                },
                 "Health Status": {
                     "Current": request.form.get('health_status'),
                     "Vaccination": request.form.get('vaccination_status')
@@ -160,8 +163,32 @@ def add_sheep():
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 400
     
+    # Initialize empty data for GET request
+    data = {
+        'weight': '',
+        'health_status': '',
+        'vaccination_status': '',
+        'pregnancy_status': '',
+        'due_date': '',
+        'number_of_lambs': '',
+        'lambing_ease': '',
+        'lambing_notes': '',
+        'foot_condition': '',
+        'last_foot_check': '',
+        'foot_notes': '',
+        'behavior_pattern': '',
+        'stress_level': '',
+        'behavior_notes': '',
+        'wool_quality': '',
+        'wool_texture': '',
+        'last_shearing': '',
+        'next_shearing': '',
+        'treatment_details': ''
+    }
+    
     return render_template('health_records/add.html',
                          animal_type='Sheep',
+                         data=data,
                          today=date.today())
 @bp.route('/cattle/add', methods=['GET', 'POST'])
 @login_required
@@ -411,30 +438,13 @@ def view(id):
     record = HealthRecord.query.get_or_404(id)
     try:
         description = json.loads(record.description) if record.description else {}
-    except:
-        description = {}
-    return render_template('health_records/view.html', 
-                         record=record,
-                         description=description,
-                         today=date.today())
-
-@bp.route('/<int:id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit(id):
-    """Edit an existing health record"""
-    record = HealthRecord.query.get_or_404(id)
-    animal_type = record.animal.species  # Get the animal type for template
-    
-    try:
-        description = json.loads(record.description) if record.description else {}
-    except:
-        description = {}
-    
-    if request.method == 'GET':
-        # Extract data from the description dictionary
+        
+        # Extract data for the template
         data = {
             # Basic Information
             'tag_number': record.animal.tag_number,
+            'weight': description.get('Basic Information', {}).get('Weight'),  # Changed from Physical Condition to Basic Information
+            'record_date': record.date.strftime('%Y-%m-%d'),
             
             # Health Status
             'health_status': description.get('Health Status', {}).get('Current'),
@@ -452,10 +462,70 @@ def edit(id):
             'last_foot_check': description.get('Foot Health', {}).get('Last Check'),
             'foot_notes': description.get('Foot Health', {}).get('Notes'),
             
-            # Flock Behavior
-            'behavior_pattern': description.get('Flock Behavior', {}).get('Pattern'),
-            'stress_level': description.get('Flock Behavior', {}).get('Stress Level'),
-            'behavior_notes': description.get('Flock Behavior', {}).get('Notes'),
+            # Behavior (matches the add_sheep structure)
+            'behavior_pattern': description.get('Behavior', {}).get('Pattern'),
+            'stress_level': description.get('Behavior', {}).get('Stress Level'),
+            'behavior_notes': description.get('Behavior', {}).get('Notes'),
+            
+            # Wool Quality
+            'wool_quality': description.get('Wool Quality', {}).get('Condition'),
+            'wool_texture': description.get('Wool Quality', {}).get('Texture'),
+            'last_shearing': description.get('Wool Quality', {}).get('Last Shearing'),
+            'next_shearing': description.get('Wool Quality', {}).get('Next Shearing'),
+            
+            # Treatment Details (matches add_sheep structure)
+            'treatment_details': record.treatment
+        }
+
+    except Exception as e:
+        print(f"Error processing record: {str(e)}")  # For debugging
+        data = {}
+
+    return render_template('health_records/view.html',
+                         record=record,
+                         data=data,
+                         animal_type=record.animal.species,
+                         today=date.today())
+
+@bp.route('/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit(id):
+    """Edit an existing health record"""
+    record = HealthRecord.query.get_or_404(id)
+    animal_type = record.animal.species
+    
+    try:
+        description = json.loads(record.description) if record.description else {}
+    except:
+        description = {}
+    
+    if request.method == 'GET':
+        # Extract data from the description dictionary
+        data = {
+            # Basic Information
+            'tag_number': record.animal.tag_number,
+            'weight': description.get('Physical Condition', {}).get('Weight'),
+            
+            # Health Status
+            'health_status': description.get('Health Status', {}).get('Current'),
+            'vaccination_status': description.get('Health Status', {}).get('Vaccination'),
+            
+            # Lambing History
+            'pregnancy_status': description.get('Lambing', {}).get('Status'),
+            'due_date': description.get('Lambing', {}).get('Due Date'),
+            'number_of_lambs': description.get('Lambing', {}).get('Number of Lambs'),
+            'lambing_ease': description.get('Lambing', {}).get('Lambing Ease'),
+            'lambing_notes': description.get('Lambing', {}).get('Notes'),
+            
+            # Foot Health
+            'foot_condition': description.get('Foot Health', {}).get('Condition'),
+            'last_foot_check': description.get('Foot Health', {}).get('Last Check'),
+            'foot_notes': description.get('Foot Health', {}).get('Notes'),
+            
+            # Behavior (changed from Flock Behavior to match add route)
+            'behavior_pattern': description.get('Behavior', {}).get('Pattern'),
+            'stress_level': description.get('Behavior', {}).get('Stress Level'),
+            'behavior_notes': description.get('Behavior', {}).get('Notes'),
             
             # Wool Quality
             'wool_quality': description.get('Wool Quality', {}).get('Condition'),
@@ -478,6 +548,10 @@ def edit(id):
         try:
             # Build updated description dictionary
             description = {
+                "Physical Condition": {
+                    "Weight": request.form.get('weight'),
+                    "Notes": request.form.get('physical_notes')
+                },
                 "Health Status": {
                     "Current": request.form.get('health_status'),
                     "Vaccination": request.form.get('vaccination_status')
@@ -494,7 +568,7 @@ def edit(id):
                     "Last Check": request.form.get('last_foot_check'),
                     "Notes": request.form.get('foot_notes')
                 },
-                "Flock Behavior": {
+                "Behavior": {  # Changed from Flock Behavior to match add route
                     "Pattern": request.form.get('behavior_pattern'),
                     "Stress Level": request.form.get('stress_level'),
                     "Notes": request.form.get('behavior_notes')
@@ -512,8 +586,28 @@ def edit(id):
                 }
             }
 
+            # Validate required fields
+            if not request.form.get('health_status'):
+                raise ValueError("Health Status is required")
+
             # Update record
-            record.description = json.dumps(description)
+            record.description = json.dumps(description, indent=2)
+            
+            # If there's a cost associated with treatment
+            if request.form.get('treatment_cost'):
+                try:
+                    record.cost = float(request.form.get('treatment_cost'))
+                except ValueError:
+                    record.cost = None
+
+            # Update next due date if provided
+            if request.form.get('next_due_date'):
+                try:
+                    record.next_due_date = datetime.strptime(
+                        request.form.get('next_due_date'), '%Y-%m-%d'
+                    ).date()
+                except ValueError:
+                    record.next_due_date = None
             
             db.session.commit()
 
@@ -527,7 +621,16 @@ def edit(id):
             flash('Health record updated successfully!', 'success')
             return redirect(url_for('health_records.view', id=record.id))
             
+        except ValueError as ve:
+            # Handle validation errors
+            db.session.rollback()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': str(ve)}), 400
+            flash(str(ve), 'danger')
+            return redirect(url_for('health_records.edit', id=record.id))
+            
         except Exception as e:
+            # Handle other errors
             db.session.rollback()
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': False, 'message': str(e)}), 400

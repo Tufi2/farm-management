@@ -25,6 +25,16 @@
                                     {{ animal_type }} not found with this tag number.
                                 </div>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="weight" class="form-label">Weight (kg)</label>
+                                <input type="number" 
+                                       step="0.1" 
+                                       class="form-control" 
+                                       id="weight" 
+                                       name="weight" 
+                                       placeholder="Enter weight in kilograms"
+                                       value="{{ data.weight if data and data.weight else '' }}">
+                            </div>
                         </div>
 
                         <!-- Health Status -->

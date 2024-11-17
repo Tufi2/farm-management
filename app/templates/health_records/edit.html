@@ -1,26 +1,17 @@
-<!-- Update the first part of your edit.html -->
 {% extends "base.html" %}
 
 {% block title %}Edit Health Record{% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- Add Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto" id="toastTitle"></strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" id="toastMessage"></div>
-        </div>
-    </div>
-
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h5 mb-0">Edit Sheep Health Record</h2>
+                <div class="card-header {% if animal_type == 'Sheep' %}bg-primary
+                     {% elif animal_type == 'Cattle' %}bg-success
+                     {% elif animal_type == 'Goat' %}bg-warning
+                     {% elif animal_type == 'Chicken' %}bg-info{% endif %} text-white">
+                    <h2 class="h5 mb-0">Edit {{ animal_type }} Health Record</h2>
                 </div>
                 <div class="card-body">
                     <form method="POST" id="healthRecordForm">
@@ -28,8 +19,8 @@
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Basic Information</h3>
                             <div class="col-md-6 mb-3">
-                                <label for="tag_number" class="form-label">Tag Number</label>
-                                <input type="text" class="form-control" value="{{ record.animal.tag_number }}" readonly>
+                                <label for="tag_number" class="form-label">{{ animal_type }} Tag Number</label>
+                                <input type="text" class="form-control" id="tag_number" value="{{ record.animal.tag_number }}" readonly>
                             </div>
                         </div>
 
@@ -72,13 +63,11 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="due_date" class="form-label">Expected Due Date</label>
-                                <input type="date" class="form-control" id="due_date" name="due_date" 
-                                       value="{{ data.due_date if data.due_date else '' }}">
+                                <input type="date" class="form-control" id="due_date" name="due_date" value="{{ data.due_date if data.due_date }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="number_of_lambs" class="form-label">Number of Lambs</label>
-                                <input type="number" class="form-control" id="number_of_lambs" name="number_of_lambs" min="0"
-                                       value="{{ data.number_of_lambs if data.number_of_lambs else '' }}">
+                                <input type="number" class="form-control" id="number_of_lambs" name="number_of_lambs" min="0" value="{{ data.number_of_lambs if data.number_of_lambs }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="lambing_ease" class="form-label">Lambing Ease</label>
@@ -92,196 +81,235 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <label for="lambing_notes" class="form-label">Lambing Notes</label>
-                                <textarea class="form-control" id="lambing_notes" name="lambing_notes" rows="3"
-                                          placeholder="Enter details about lambing history, complications, and offspring health">{{ data.lambing_notes if data.lambing_notes else '' }}</textarea>
+                                <textarea class="form-control" id="lambing_notes" name="lambing_notes" rows="3" placeholder="Enter details about lambing history, complications, and offspring health">{{ data.lambing_notes if data.lambing_notes }}</textarea>
                             </div>
                         </div>
 
-                    <!-- Wool & Condition -->
-                    <div class="row mb-4">
-                        <h3 class="h6 text-muted mb-3">Wool & Body Condition</h3>
-                        <div class="col-md-6 mb-3">
-                            <label for="wool_condition" class="form-label">Wool Condition</label>
-                            <select class="form-select" id="wool_condition" name="wool_condition">
-                                <option value="">Select Condition</option>
-                                <option value="Excellent" {% if data.wool_condition == 'Excellent' %}selected{% endif %}>Excellent</option>
-                                <option value="Good" {% if data.wool_condition == 'Good' %}selected{% endif %}>Good</option>
-                                <option value="Fair" {% if data.wool_condition == 'Fair' %}selected{% endif %}>Fair</option>
-                                <option value="Poor" {% if data.wool_condition == 'Poor' %}selected{% endif %}>Poor</option>
-                            </select>
+                        <!-- Foot Health -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Foot Health</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="foot_condition" class="form-label">Foot Condition</label>
+                                <select class="form-select" id="foot_condition" name="foot_condition">
+                                    <option value="">Select Condition</option>
+                                    <option value="Healthy" {% if data.foot_condition == 'Healthy' %}selected{% endif %}>Healthy</option>
+                                    <option value="Minor Issues" {% if data.foot_condition == 'Minor Issues' %}selected{% endif %}>Minor Issues</option>
+                                    <option value="Foot Rot" {% if data.foot_condition == 'Foot Rot' %}selected{% endif %}>Foot Rot</option>
+                                    <option value="Treatment Required" {% if data.foot_condition == 'Treatment Required' %}selected{% endif %}>Treatment Required</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_foot_check" class="form-label">Last Foot Check Date</label>
+                                <input type="date" class="form-control" id="last_foot_check" name="last_foot_check" value="{{ data.last_foot_check if data.last_foot_check }}">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="foot_notes" class="form-label">Foot Health Notes</label>
+                                <textarea class="form-control" id="foot_notes" name="foot_notes" rows="2" placeholder="Enter any notes about foot health, treatments, or concerns">{{ data.foot_notes if data.foot_notes }}</textarea>
+                            </div>
                         </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="weight" class="form-label">Current Weight (kg)</label>
-                            <input type="number" step="0.1" class="form-control" id="weight" name="weight" 
-                                   value="{{ data.weight if data.weight else '' }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="last_shearing" class="form-label">Last Shearing Date</label>
-                            <input type="date" class="form-control" id="last_shearing" name="last_shearing"
-                                   value="{{ data.last_shearing if data.last_shearing else '' }}">
-                        </div>
-                    </div>
 
-                    <!-- Medical Treatment -->
-                    <div class="row mb-4">
-                        <h3 class="h6 text-muted mb-3">Medical Treatment</h3>
-                        <div class="col-md-6 mb-3">
-                            <label for="treatment_type" class="form-label">Treatment Type</label>
-                            <select class="form-select" id="treatment_type" name="treatment_type">
-                                <option value="">Select Type</option>
-                                <option value="Vaccination" {% if data.treatment_type == 'Vaccination' %}selected{% endif %}>Vaccination</option>
-                                <option value="Deworming" {% if data.treatment_type == 'Deworming' %}selected{% endif %}>Deworming</option>
-                                <option value="Medication" {% if data.treatment_type == 'Medication' %}selected{% endif %}>Medication</option>
-                                <option value="Surgery" {% if data.treatment_type == 'Surgery' %}selected{% endif %}>Surgery</option>
-                                <option value="Other" {% if data.treatment_type == 'Other' %}selected{% endif %}>Other</option>
-                            </select>
+                        <!-- Flock Behavior -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Flock Behavior</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="behavior_pattern" class="form-label">Behavior Pattern</label>
+                                <select class="form-select" id="behavior_pattern" name="behavior_pattern">
+                                    <option value="">Select Pattern</option>
+                                    <option value="Normal" {% if data.behavior_pattern == 'Normal' %}selected{% endif %}>Normal</option>
+                                    <option value="Isolated" {% if data.behavior_pattern == 'Isolated' %}selected{% endif %}>Isolated</option>
+                                    <option value="Aggressive" {% if data.behavior_pattern == 'Aggressive' %}selected{% endif %}>Aggressive</option>
+                                    <option value="Stressed" {% if data.behavior_pattern == 'Stressed' %}selected{% endif %}>Stressed</option>
+                                    <option value="Lethargic" {% if data.behavior_pattern == 'Lethargic' %}selected{% endif %}>Lethargic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="stress_level" class="form-label">Stress Level</label>
+                                <select class="form-select" id="stress_level" name="stress_level">
+                                    <option value="">Select Level</option>
+                                    <option value="None" {% if data.stress_level == 'None' %}selected{% endif %}>None</option>
+                                    <option value="Low" {% if data.stress_level == 'Low' %}selected{% endif %}>Low</option>
+                                    <option value="Medium" {% if data.stress_level == 'Medium' %}selected{% endif %}>Medium</option>
+                                    <option value="High" {% if data.stress_level == 'High' %}selected{% endif %}>High</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="behavior_notes" class="form-label">Behavioral Notes</label>
+                                <textarea class="form-control" id="behavior_notes" name="behavior_notes" rows="2" placeholder="Enter any notable behavior observations">{{ data.behavior_notes if data.behavior_notes }}</textarea>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="medication_name" class="form-label">Medication/Treatment Name</label>
-                            <input type="text" class="form-control" id="medication_name" name="medication_name"
-                                   value="{{ data.medication_name if data.medication_name else '' }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="treatment_date" class="form-label">Treatment Date</label>
-                            <input type="date" class="form-control" id="treatment_date" name="treatment_date"
-                                   value="{{ data.treatment_date if data.treatment_date else '' }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="follow_up_date" class="form-label">Follow-up Date</label>
-                            <input type="date" class="form-control" id="follow_up_date" name="follow_up_date"
-                                   value="{{ data.follow_up_date if data.follow_up_date else '' }}">
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label for="treatment_notes" class="form-label">Treatment Notes</label>
-                            <textarea class="form-control" id="treatment_notes" name="treatment_notes" rows="3"
-                                      placeholder="Enter details about treatment, dosage, and observations">{{ data.treatment_notes if data.treatment_notes else '' }}</textarea>
-                        </div>
-                    </div>
 
-                    <!-- Additional Notes -->
-                    <div class="row mb-4">
-                        <h3 class="h6 text-muted mb-3">Additional Notes</h3>
-                        <div class="col-12 mb-3">
-                            <label for="general_notes" class="form-label">General Notes</label>
-                            <textarea class="form-control" id="general_notes" name="general_notes" rows="4"
-                                      placeholder="Enter any additional observations or notes about the animal's health">{{ data.general_notes if data.general_notes else '' }}</textarea>
+                        <!-- Wool Quality -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Wool Quality</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="wool_quality" class="form-label">Wool Condition</label>
+                                <select class="form-select" id="wool_quality" name="wool_quality">
+                                    <option value="">Select Condition</option>
+                                    <option value="Excellent" {% if data.wool_quality == 'Excellent' %}selected{% endif %}>Excellent</option>
+                                    <option value="Good" {% if data.wool_quality == 'Good' %}selected{% endif %}>Good</option>
+                                    <option value="Fair" {% if data.wool_quality == 'Fair' %}selected{% endif %}>Fair</option>
+                                    <option value="Poor" {% if data.wool_quality == 'Poor' %}selected{% endif %}>Poor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="wool_texture" class="form-label">Wool Texture</label>
+                                <select class="form-select" id="wool_texture" name="wool_texture">
+                                    <option value="">Select Texture</option>
+                                    <option value="Fine" {% if data.wool_texture == 'Fine' %}selected{% endif %}>Fine</option>
+                                    <option value="Medium" {% if data.wool_texture == 'Medium' %}selected{% endif %}>Medium</option>
+                                    <option value="Coarse" {% if data.wool_texture == 'Coarse' %}selected{% endif %}>Coarse</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_shearing" class="form-label">Last Shearing Date</label>
+                                <input type="date" class="form-control" id="last_shearing" name="last_shearing" value="{{ data.last_shearing if data.last_shearing }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="next_shearing" class="form-label">Next Shearing Due</label>
+                                <input type="date" class="form-control" id="next_shearing" name="next_shearing" value="{{ data.next_shearing if data.next_shearing }}">
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Action Buttons -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-secondary me-2" onclick="history.back()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
+                        <!-- Parasite Control -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Parasite Control</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_check_date" class="form-label">Last Check Date</label>
+                                <input type="date" class="form-control" id="last_check_date" name="last_check_date" value="{{ data.last_check_date if data.last_check_date }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="parasite_status" class="form-label">Parasite Status</label>
+                                <select class="form-select" id="parasite_status" name="parasite_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Clear" {% if data.parasite_status == 'Clear' %}selected{% endif %}>Clear</option>
+                                    <option value="Minor Infestation" {% if data.parasite_status == 'Minor Infestation' %}selected{% endif %}>Minor Infestation</option>
+                                    <option value="Severe Infestation" {% if data.parasite_status == 'Severe Infestation' %}selected{% endif %}>Severe Infestation</option>
+                                    <option value="Under Treatment" {% if data.parasite_status == 'Under Treatment' %}selected{% endif %}>Under Treatment</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="treatment_details" class="form-label">Treatment Details</label>
+                                <textarea class="form-control" id="treatment_details" name="treatment_details" rows="3" placeholder="Enter any treatment details">{{ data.treatment_details if data.treatment_details }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Toast Container -->
+                                                <!-- Toast Container -->
+                        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                            <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="toast-header">
+                                    <strong class="me-auto" id="toastTitle"></strong>
+                                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                                <div class="toast-body" id="toastMessage"></div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Additional Notes</h3>
+                            <div class="col-12 mb-3">
+                                <label for="general_notes" class="form-label">General Notes</label>
+                                <textarea class="form-control" id="general_notes" name="general_notes" rows="4"
+                                          placeholder="Enter any additional observations or notes about the animal's health">{{ data.general_notes if data.general_notes }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn {% if animal_type == 'Sheep' %}btn-primary
+                                                        {% elif animal_type == 'Cattle' %}btn-success
+                                                        {% elif animal_type == 'Goat' %}btn-warning
+                                                        {% elif animal_type == 'Chicken' %}btn-info{% endif %}">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
-</div>
 
 {% block scripts %}
 <script>
-document.getElementById('healthRecordForm').addEventListener('submit', async function(e) {
-e.preventDefault();
-try {
-    const formData = new FormData(this);
-    const response = await fetch(window.location.href, {
-        method: 'POST',
-        body: formData
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('healthRecordForm');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Disable submit button to prevent double submission
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        
+        try {
+            const formData = new FormData(this);
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                showToast('Success', result.message, 'success');
+                setTimeout(() => {
+                    window.location.href = result.redirectUrl;
+                }, 1500);
+            } else {
+                throw new Error(result.message || 'Failed to update record');
+            }
+        } catch (error) {
+            showToast('Error', error.message, 'error');
+            submitButton.disabled = false;
+        }
     });
-
-    if (response.ok) {
-        showToast('Success', 'Health record updated successfully', 'success');
-        setTimeout(() => {
-            window.location.href = "{{ url_for('health_records.view', id=record.id) }}";
-        }, 1500);
-    } else {
-        throw new Error('Failed to update record');
-    }
-} catch (error) {
-    showToast('Error', 'Failed to update health record', 'error');
-}
 });
 
-function showToast(title, message, type = 'success') {
-const toast = document.getElementById('toast');
-const toastInstance = new bootstrap.Toast(toast);
-document.getElementById('toastTitle').textContent = title;
-document.getElementById('toastMessage').textContent = message;
-
-toast.classList.remove('bg-success', 'bg-danger', 'text-white');
-if (type === 'error') {
-    toast.classList.add('bg-danger', 'text-white');
-} else {
-    toast.classList.add('bg-success', 'text-white');
-}
-
-toastInstance.show();
+function showToast(message, type = 'success') {
+    const toast = new bootstrap.Toast(document.getElementById('toast'));
+    const toastBody = document.getElementById('toastMessage');
+    const toastHeader = document.getElementById('toastTitle');
+    
+    toastHeader.className = type === 'success' ? 'text-success' : 'text-danger';
+    toastHeader.textContent = type === 'success' ? 'Success' : 'Error';
+    toastBody.textContent = message;
+    
+    toast.show();
 }
 </script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('healthRecordForm');
-        
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            try {
-                const formData = new FormData(this);
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: formData
-                });
-    
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showToast('Success', result.message, 'success');
-                    // Wait for toast to show before redirecting
-                    setTimeout(() => {
-                        window.location.href = result.redirectUrl;
-                    }, 1500);
-                } else {
-                    throw new Error(result.message || 'Failed to update record');
-                }
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            }
-        });
-    });
-    </script>
 {% endblock %}
 
 {% block styles %}
 <style>
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-.form-label {
-    font-weight: 500;
-}
-.h6 {
-    color: #6c757d;
-    font-weight: 600;
-}
-.mb-4 {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 1.5rem;
-}
-.mb-4:last-child {
-    border-bottom: none;
-}
-.toast {
-    opacity: 0.9;
-}
-.toast-container {
-    z-index: 1050;
-}
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .h6 {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    .mb-4 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1.5rem;
+    }
+    .mb-4:last-child {
+        border-bottom: none;
+    }
+    .toast {
+        opacity: 0.9;
+    }
+    .toast-container {
+        z-index: 1050;
+    }
 </style>
 {% endblock %}
 {% endblock %}

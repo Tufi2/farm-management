@@ -37,24 +37,25 @@
     <!-- 1. Basic Information Section -->
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
-            <h2 class="h5 mb-0">
-                <i class="fas fa-info-circle me-2"></i>Basic Information
-            </h2>
+            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4">
                     <label class="fw-bold text-muted">Tag Number</label>
-                    <div class="h5 text-primary">{{ record.animal.tag_number }}</div>
+                    <div>{{ data.tag_number }}</div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="fw-bold text-muted">Animal Type</label>
-                    <div class="h5 text-primary">{{ record.animal.species }}</div>
+                <div class="col-md-4">
+                    <label class="fw-bold text-muted">Weight</label>
+                    <div>{% if data.weight %}{{ data.weight }} kg{% else %}Not recorded{% endif %}</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="fw-bold text-muted">Record Date</label>
+                    <div>{{ data.record_date }}</div>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- 2. Health Status Section -->
     <div class="card mb-4">
         <div class="card-header bg-success text-white">
@@ -67,13 +68,13 @@
                 <div class="col-md-6">
                     <label class="fw-bold text-muted">Current Status</label>
                     <div>
-                        <span class="badge bg-success fs-6">{{ description['Health Status'].get('Current', 'N/A') }}</span>
+                        <span class="badge bg-success fs-6">{{ data.health_status|default('N/A') }}</span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <label class="fw-bold text-muted">Vaccination Status</label>
                     <div>
-                        <span class="badge bg-warning fs-6">{{ description['Health Status'].get('Vaccination', 'N/A') }}</span>
+                        <span class="badge bg-warning fs-6">{{ data.vaccination_status|default('N/A') }}</span>
                     </div>
                 </div>
             </div>
@@ -91,23 +92,23 @@
             <div class="row">
                 <div class="col-md-3 mb-3">
                     <label class="fw-bold text-muted">Status</label>
-                    <div>{{ description['Lambing'].get('Status', 'N/A') }}</div>
+                    <div>{{ data.pregnancy_status|default('N/A') }}</div>
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="fw-bold text-muted">Due Date</label>
-                    <div>{{ description['Lambing'].get('Due Date', 'N/A') }}</div>
+                    <div>{{ data.due_date|default('N/A') }}</div>
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="fw-bold text-muted">Number of Lambs</label>
-                    <div>{{ description['Lambing'].get('Number of Lambs', 'N/A') }}</div>
+                    <div>{{ data.number_of_lambs|default('N/A') }}</div>
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="fw-bold text-muted">Lambing Ease</label>
-                    <div>{{ description['Lambing'].get('Lambing Ease', 'N/A') }}</div>
+                    <div>{{ data.lambing_ease|default('N/A') }}</div>
                 </div>
                 <div class="col-12">
                     <label class="fw-bold text-muted">Notes</label>
-                    <div class="alert alert-light">{{ description['Lambing'].get('Notes', 'N/A') }}</div>
+                    <div class="alert alert-light">{{ data.lambing_notes|default('N/A') }}</div>
                 </div>
             </div>
         </div>
@@ -124,50 +125,75 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="fw-bold text-muted">Condition</label>
-                    <div>{{ description['Foot Health'].get('Condition', 'N/A') }}</div>
+                    <div>{{ data.foot_condition|default('N/A') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="fw-bold text-muted">Last Check</label>
-                    <div>{{ description['Foot Health'].get('Last Check', 'N/A') }}</div>
+                    <div>{{ data.last_foot_check|default('N/A') }}</div>
                 </div>
                 <div class="col-12">
                     <label class="fw-bold text-muted">Notes</label>
-                    <div class="alert alert-light">{{ description['Foot Health'].get('Notes', 'N/A') }}</div>
+                    <div class="alert alert-light">{{ data.foot_notes|default('N/A') }}</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 5. Wool Quality Section -->
+    <!-- 5. Behavior Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-users me-2"></i>Behavior
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-muted">Behavior Pattern</label>
+                    <div>{{ data.behavior_pattern|default('N/A') }}</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-muted">Stress Level</label>
+                    <div>{{ data.stress_level|default('N/A') }}</div>
+                </div>
+                <div class="col-12">
+                    <label class="fw-bold text-muted">Behavioral Notes</label>
+                    <div class="alert alert-light">{{ data.behavior_notes|default('N/A') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Wool Quality Section -->
     <div class="card mb-4">
         <div class="card-header bg-info text-white">
             <h2 class="h5 mb-0">
-                <i class="fas fa-wool me-2"></i>Wool Quality
+                <i class="fas fa-sheep me-2"></i>Wool Quality
             </h2>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="fw-bold text-muted">Condition</label>
-                    <div>{{ description['Wool Quality'].get('Condition', 'N/A') }}</div>
+                    <div>{{ data.wool_quality|default('N/A') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="fw-bold text-muted">Texture</label>
-                    <div>{{ description['Wool Quality'].get('Texture', 'N/A') }}</div>
+                    <div>{{ data.wool_texture|default('N/A') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="fw-bold text-muted">Last Shearing</label>
-                    <div>{{ description['Wool Quality'].get('Last Shearing', 'N/A') }}</div>
+                    <div>{{ data.last_shearing|default('N/A') }}</div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="fw-bold text-muted">Next Shearing Due</label>
-                    <div>{{ description['Wool Quality'].get('Next Shearing', 'N/A') }}</div>
+                    <div>{{ data.next_shearing|default('N/A') }}</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 6. Treatment Details Section -->
+    <!-- 7. Treatment Details Section -->
     <div class="card mb-4">
         <div class="card-header bg-danger text-white">
             <h2 class="h5 mb-0">
@@ -176,27 +202,37 @@
         </div>
         <div class="card-body">
             <div class="alert alert-light">
-                {{ record.treatment or 'No treatment details available' }}
+                {{ record.treatment|default('No treatment details available') }}
             </div>
         </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-end gap-2 mb-4">
+        <a href="{{ url_for('health_records.edit', id=record.id) }}" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Edit Record
+        </a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash me-2"></i>Delete Record
+        </button>
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this health record?</p>
-                <p class="text-danger"><small>This action cannot be undone.</small></p>
+                Are you sure you want to delete this health record?
+                <p class="text-danger mt-2 mb-0"><small>This action cannot be undone.</small></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST">
+                <form id="deleteForm" method="POST" action="{{ url_for('health_records.delete', id=record.id) }}">
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
             </div>
