@@ -179,66 +179,133 @@ def view(id):
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit(id):
-    """Edit an existing animal with duplicate tag number validation"""
-    animal = Animal.query.get_or_404(id)
+    """Edit an existing health record"""
+    record = HealthRecord.query.get_or_404(id)
+    animal_type = record.animal.species
+    
+    try:
+        description = json.loads(record.description) if record.description else {}
+    except:
+        description = {}
+    
+    if request.method == 'GET':
+        # Extract data from the description dictionary
+        data = {
+            # Basic Information
+            'tag_number': record.animal.tag_number,
+            'weight': description.get('Basic Information', {}).get('Weight'),
+            
+            # Health Status
+            'health_status': description.get('Health Status', {}).get('Current'),
+            'vaccination_status': description.get('Health Status', {}).get('Vaccination'),
+            
+            # Lambing History
+            'pregnancy_status': description.get('Lambing', {}).get('Status'),
+            'due_date': description.get('Lambing', {}).get('Due Date'),
+            'number_of_lambs': description.get('Lambing', {}).get('Number of Lambs'),
+            'lambing_ease': description.get('Lambing', {}).get('Lambing Ease'),
+            'lambing_notes': description.get('Lambing', {}).get('Notes'),
+            
+            # Foot Health
+            'foot_condition': description.get('Foot Health', {}).get('Condition'),
+            'last_foot_check': description.get('Foot Health', {}).get('Last Check'),
+            'foot_notes': description.get('Foot Health', {}).get('Notes'),
+            
+            # Behavior
+            'behavior_pattern': description.get('Behavior', {}).get('Pattern'),
+            'stress_level': description.get('Behavior', {}).get('Stress Level'),
+            'behavior_notes': description.get('Behavior', {}).get('Notes'),
+            
+            # Wool Quality
+            'wool_quality': description.get('Wool Quality', {}).get('Condition'),
+            'wool_texture': description.get('Wool Quality', {}).get('Texture'),
+            'last_shearing': description.get('Wool Quality', {}).get('Last Shearing'),
+            'next_shearing': description.get('Wool Quality', {}).get('Next Shearing'),
+            
+            # Treatment Details
+            'treatment_details': record.treatment
+        }
+        
+        return render_template('health_records/edit.html',
+                            record=record,
+                            data=data,
+                            animal_type=animal_type)
+
     if request.method == 'POST':
         try:
-            # Check for duplicate tag number only if it changed
-            new_tag_number = request.form.get('tag_number').strip()
-            if new_tag_number != animal.tag_number:
-                existing_animal = Animal.query.filter_by(tag_number=new_tag_number).first()
-                if existing_animal:
-                    flash(f'Tag number {new_tag_number} already exists', 'danger')
-                    return redirect(url_for('animals.edit', id=id))
+            # Build updated description dictionary
+            description = {
+                "Basic Information": {
+                    "Weight": request.form.get('weight')
+                },
+                "Health Status": {
+                    "Current": request.form.get('health_status'),
+                    "Vaccination": request.form.get('vaccination_status')
+                },
+                "Lambing": {
+                    "Status": request.form.get('pregnancy_status'),
+                    "Due Date": request.form.get('due_date'),
+                    "Number of Lambs": request.form.get('number_of_lambs'),
+                    "Lambing Ease": request.form.get('lambing_ease'),
+                    "Notes": request.form.get('lambing_notes')
+                },
+                "Foot Health": {
+                    "Condition": request.form.get('foot_condition'),
+                    "Last Check": request.form.get('last_foot_check'),
+                    "Notes": request.form.get('foot_notes')
+                },
+                "Behavior": {
+                    "Pattern": request.form.get('behavior_pattern'),
+                    "Stress Level": request.form.get('stress_level'),
+                    "Notes": request.form.get('behavior_notes')
+                },
+                "Wool Quality": {
+                    "Condition": request.form.get('wool_quality'),
+                    "Texture": request.form.get('wool_texture'),
+                    "Last Shearing": request.form.get('last_shearing'),
+                    "Next Shearing": request.form.get('next_shearing')
+                }
+            }
 
-            animal.tag_number = new_tag_number
-            animal.name = request.form.get('name')
-            animal.breed = request.form.get('breed')
-            animal.date_of_birth = datetime.strptime(request.form.get('date_of_birth'), '%Y-%m-%d').date() if request.form.get('date_of_birth') else None
-            animal.gender = request.form.get('gender')
-            animal.weight = float(request.form.get('weight')) if request.form.get('weight') else None
-            animal.status = request.form.get('status')
-            animal.notes = request.form.get('notes')
+            # Update record
+            record.description = json.dumps(description, indent=2)
+            record.treatment = request.form.get('treatment_details')
             
-            # Update type-specific fields
-            if animal.species == 'Sheep':
-                animal.wool_type = request.form.get('wool_type')
-                animal.last_shearing = datetime.strptime(request.form.get('last_shearing'), '%Y-%m-%d').date() if request.form.get('last_shearing') else None
-                animal.fleece_weight = float(request.form.get('fleece_weight')) if request.form.get('fleece_weight') else None
-                animal.wool_grade = request.form.get('wool_grade')
-                animal.lambing_status = request.form.get('lambing_status')
-                animal.lambing_date = datetime.strptime(request.form.get('lambing_date'), '%Y-%m-%d').date() if request.form.get('lambing_date') else None
+            # Handle numeric fields
+            try:
+                if request.form.get('cost'):
+                    record.cost = float(request.form.get('cost'))
+            except ValueError:
+                record.cost = None
 
-            elif animal.species == 'Cattle':
-                animal.milk_production = float(request.form.get('milk_production')) if request.form.get('milk_production') else None
-                animal.last_milking = datetime.strptime(request.form.get('last_milking'), '%Y-%m-%d').date() if request.form.get('last_milking') else None
-                animal.milk_quality = request.form.get('milk_quality')
-                animal.calving_status = request.form.get('calving_status')
-                animal.calving_date = datetime.strptime(request.form.get('calving_date'), '%Y-%m-%d').date() if request.form.get('calving_date') else None
-                animal.milk_fat_content = float(request.form.get('milk_fat_content')) if request.form.get('milk_fat_content') else None
-
-            elif animal.species == 'Chicken':
-                animal.egg_production = int(request.form.get('egg_production')) if request.form.get('egg_production') else None
-                animal.egg_color = request.form.get('egg_color')
-                animal.comb_type = request.form.get('comb_type')
-                animal.laying_status = request.form.get('laying_status')
-                animal.last_laying_date = datetime.strptime(request.form.get('last_laying_date'), '%Y-%m-%d').date() if request.form.get('last_laying_date') else None
-                animal.egg_size = request.form.get('egg_size')
-
-            elif animal.species not in VALID_SPECIES:
-                animal.category = request.form.get('category')
-                animal.special_needs = request.form.get('special_needs')
-                animal.diet_requirements = request.form.get('diet_requirements')
-                animal.habitat = request.form.get('habitat')
+            # Handle date fields
+            try:
+                if request.form.get('next_due_date'):
+                    record.next_due_date = datetime.strptime(
+                        request.form.get('next_due_date'), '%Y-%m-%d'
+                    ).date()
+            except ValueError:
+                record.next_due_date = None
             
             db.session.commit()
-            flash('Animal updated successfully!', 'success')
-            return redirect(url_for('animals.view', id=animal.id))
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'success': True,
+                    'message': 'Health record updated successfully',
+                    'redirectUrl': url_for('health_records.view', id=record.id)
+                })
+            
+            flash('Health record updated successfully!', 'success')
+            return redirect(url_for('health_records.view', id=record.id))
+            
         except Exception as e:
             db.session.rollback()
-            flash(f'Error updating animal: {str(e)}', 'danger')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': str(e)}), 400
             
-    return render_template('animals/edit.html', animal=animal)
+            flash(f'Error updating health record: {str(e)}', 'danger')
+            return redirect(url_for('health_records.edit', id=record.id))
 
 @bp.route('/<int:id>/delete', methods=['POST'])
 @login_required

@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}View Cattle Health Record{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Main Info Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">
+                        <i class="fas fa-cow me-2"></i>Cattle Health Record
+                    </h2>
+                    <div>
+                        <button class="btn btn-light btn-sm me-2" onclick="downloadRecord('pdf')">
+                            <i class="fas fa-file-pdf me-1"></i>PDF
+                        </button>
+                        <button class="btn btn-light btn-sm" onclick="downloadRecord('csv')">
+                            <i class="fas fa-file-csv me-1"></i>CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Basic Information -->
+                    <div class="row mb-4">
+                        <h3 class="h6 text-muted border-bottom pb-2">Basic Information</h3>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Tag Number:</dt>
+                                <dd class="col-sm-8">{{ record.animal.tag_number }}</dd>
+                                
+                                <dt class="col-sm-4">Breed:</dt>
+                                <dd class="col-sm-8">{{ record.animal.breed }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Record Date:</dt>
+                                <dd class="col-sm-8">{{ record.date.strftime('%Y-%m-%d') }}</dd>
+                                
+                                <dt class="col-sm-4">Created By:</dt>
+                                <dd class="col-sm-8">{{ record.created_by.username }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Vital Signs -->
+                    <div class="row mb-4">
+                        <h3 class="h6 text-muted border-bottom pb-2">Vital Signs</h3>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Temperature</h6>
+                                    <p class="h4 mb-0">{{ data.vital_signs.temperature }}°C</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Heart Rate</h6>
+                                    <p class="h4 mb-0">{{ data.vital_signs.heart_rate }} BPM</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Respiratory Rate</h6>
+                                    <p class="h4 mb-0">{{ data.vital_signs.respiratory_rate }}/min</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Weight</h6>
+                                    <p class="h4 mb-0">{{ data.vital_signs.weight }} kg</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Milk Production -->
+                    <div class="row mb-4">
+                        <h3 class="h6 text-muted border-bottom pb-2">Milk Production</h3>
+                        <div class="col-md-4">
+                            <div class="card {% if data.milk_production.daily_volume > 20 %}bg-success text-white{% else %}bg-light{% endif %}">
+                                <div class="card-body text-center">
+                                    <h6 class="{% if data.milk_production.daily_volume > 20 %}text-white{% else %}text-muted{% endif %}">
+                                        Daily Production
+                                    </h6>
+                                    <p class="h4 mb-0">{{ data.milk_production.daily_volume }} L</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Quality Grade</h6>
+                                    <p class="h4 mb-0">{{ data.milk_production.quality_grade }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Fat Content</h6>
+                                    <p class="h4 mb-0">{{ data.milk_production.fat_content }}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vaccination Records -->
+                    <div class="row mb-4">
+                        <h3 class="h6 text-muted border-bottom pb-2">Vaccination Records</h3>
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Vaccine Type</th>
+                                            <th>Date Given</th>
+                                            <th>Next Due</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for vaccine in data.vaccination_records.vaccines %}
+                                        <tr>
+                                            <td>{{ vaccine.type }}</td>
+                                            <td>{{ vaccine.date_given }}</td>
+                                            <td>{{ vaccine.next_due }}</td>
+                                            <td>
+                                                {% if vaccine.is_due %}
+                                                <span class="badge bg-danger">Due</span>
+                                                {% else %}
+                                                <span class="badge bg-success">Up to date</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Treatment Details -->
+                    <div class="row mb-4">
+                        <h3 class="h6 text-muted border-bottom pb-2">Treatment & Medications</h3>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Type:</dt>
+                                <dd class="col-sm-8">{{ data.treatment.type }}</dd>
+                                
+                                <dt class="col-sm-4">Veterinarian:</dt>
+                                <dd class="col-sm-8">{{ data.treatment.veterinarian }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Details:</dt>
+                                <dd class="col-sm-8">{{ data.treatment.details }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Back</a>
+                        <a href="{{ url_for('health_records.edit', id=record.id) }}" class="btn btn-warning me-2">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </a>
+                        <button onclick="confirmDelete({{ record.id }})" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this health record?
+                <p class="text-danger mt-2 mb-0"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(recordId) {
+    document.getElementById('deleteForm').action = `{{ url_for('health_records.delete', id=0) }}`.replace('0', recordId);
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function downloadRecord(format) {
+    window.location.href = `{{ url_for('health_records.download', id=record.id) }}/${format}`;
+}
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .h6 {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    
+    dl {
+        margin-bottom: 0;
+    }
+    
+    dt {
+        font-weight: 500;
+        color: #6c757d;
+    }
+    
+    .badge {
+        font-size: 0.875rem;
+    }
+    
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+</style>
+{% endblock %}

@@ -12,6 +12,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from datetime import datetime
+from jinja2.exceptions import TemplateNotFound
 
 
 bp = Blueprint('health_records', __name__, url_prefix='/health-records')
@@ -67,6 +68,11 @@ def index():
                          record_type=record_type,
                          today=date.today())
 
+from flask import render_template
+from flask_login import login_required
+from jinja2.exceptions import TemplateNotFound
+from datetime import date
+
 @bp.route('/type/<animal_type>')
 @login_required
 def list_by_type(animal_type):
@@ -76,17 +82,31 @@ def list_by_type(animal_type):
     # Capitalize the first letter for comparison with database
     species = animal_type.capitalize()
     
-    # Base query with joins and filters
     records = (HealthRecord.query
               .join(Animal)
               .filter(Animal.species == species)
               .order_by(HealthRecord.date.desc())
               .all())
-    
-    return render_template('health_records/list.html',
-                         records=records,
-                         animal_type=species,
-                         today=today)
+
+    # First try animal-specific template
+    try:
+        # Update the path to match your folder structure
+        return render_template(f'health_records/{animal_type.lower()}/list.html',
+                             records=records,
+                             animal_type=species,
+                             today=today)
+    except TemplateNotFound:
+        # Fallback to shared template
+        try:
+            return render_template('health_records/shared/list.html',
+                                 records=records,
+                                 animal_type=species,
+                                 today=today)
+        except TemplateNotFound as e:
+            print(f"Debug - Looking for templates at:")
+            print(f"1. health_records/{animal_type.lower()}/list.html")
+            print(f"2. health_records/shared/list.html")
+            raise e
 @bp.route('/sheep/add', methods=['GET', 'POST'])
 @login_required
 def add_sheep():
@@ -195,7 +215,6 @@ def add_sheep():
 def add_cattle():
     if request.method == 'POST':
         try:
-            # Get the cattle by tag number
             tag_number = request.form.get('tag_number')
             cattle = Animal.query.filter_by(tag_number=tag_number, species='Cattle').first()
             
@@ -213,23 +232,51 @@ def add_cattle():
                 flash('A health record already exists for this cattle today', 'warning')
                 return redirect(url_for('health_records.add_cattle'))
 
+            # Organize the data in a structured format
             description = {
-                "Health Status": {
-                    "Current": request.form.get('health_status'),
-                    "Vaccination": request.form.get('vaccination_status')
-                },
-                "Production": {
-                    "Milk Production": request.form.get('milk_production'),
-                    "Milk Quality": request.form.get('milk_quality')
-                },
-                "Physical Condition": {
+                "Vital Signs": {
+                    "Temperature": request.form.get('temperature'),
+                    "Heart Rate": request.form.get('heart_rate'),
+                    "Respiratory Rate": request.form.get('respiratory_rate'),
                     "Weight": request.form.get('weight'),
-                    "Body Condition": request.form.get('body_condition'),
-                    "Notes": request.form.get('condition_notes')
+                    "Body Condition Score": request.form.get('body_condition_score')
                 },
-                "Behavior": {
-                    "Pattern": request.form.get('behavior_pattern'),
-                    "Notes": request.form.get('behavior_notes')
+                "Health Status": {
+                    "Current": request.form.get('health_status')
+                },
+                "Vaccination Records": {
+                    "Vaccines": [
+                        {
+                            "Type": vtype,
+                            "Date Given": vdate,
+                            "Next Due": ndate
+                        }
+                        for vtype, vdate, ndate in zip(
+                            request.form.getlist('vaccine_type[]'),
+                            request.form.getlist('vaccine_date[]'),
+                            request.form.getlist('vaccine_next_due[]')
+                        )
+                    ]
+                },
+                "Reproductive Health": {
+                    "Status": request.form.get('reproductive_status'),
+                    "Last Calving Date": request.form.get('last_calving_date'),
+                    "Notes": request.form.get('calving_notes')
+                },
+                "Milk Production": {
+                    "Daily Volume": request.form.get('milk_production'),
+                    "Quality Grade": request.form.get('milk_quality'),
+                    "Fat Content": request.form.get('fat_content')
+                },
+                "Treatment": {
+                    "Type": request.form.get('treatment_type'),
+                    "Veterinarian": request.form.get('veterinarian'),
+                    "Details": request.form.get('treatment_details')
+                },
+                "Nutrition": {
+                    "Feed Type": request.form.get('feed_type'),
+                    "Feed Amount": request.form.get('feed_amount'),
+                    "Dietary Notes": request.form.get('dietary_notes')
                 }
             }
 
@@ -238,7 +285,6 @@ def add_cattle():
                 record_type='Health Check',
                 date=date.today(),
                 description=json.dumps(description, indent=2),
-                treatment=request.form.get('treatment_details'),
                 created_by_id=current_user.id,
                 created_at=datetime.utcnow()
             )
@@ -246,16 +292,24 @@ def add_cattle():
             db.session.add(record)
             db.session.commit()
             
-            return jsonify({'success': True, 'message': 'Health record added successfully!'})
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'message': 'Health record added successfully!'})
+            
+            flash('Health record added successfully!', 'success')
+            return redirect(url_for('health_records.index'))
             
         except Exception as e:
             db.session.rollback()
-            return jsonify({'success': False, 'message': str(e)}), 400
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': str(e)}), 400
+            
+            flash(f'Error adding health record: {str(e)}', 'danger')
+            return redirect(url_for('health_records.add_cattle'))
     
-    return render_template('health_records/add.html',
+    # For GET request, render the form template
+    return render_template('health_records/add_cattle.html',
                          animal_type='Cattle',
                          today=date.today())
-    
 
 @bp.route('/goat/add', methods=['GET', 'POST'])
 @login_required
@@ -539,7 +593,7 @@ def edit(id):
             'treatment_details': description.get('Parasite Control', {}).get('Treatment')
         }
         
-        return render_template('health_records/edit.html',
+        return render_template('health_records/shared/edit.html',
                             record=record,
                             data=data,
                             animal_type=animal_type)
@@ -637,6 +691,7 @@ def edit(id):
             
             flash(f'Error updating health record: {str(e)}', 'danger')
             return redirect(url_for('health_records.edit', id=record.id))
+        
 @bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
 def delete(id):
