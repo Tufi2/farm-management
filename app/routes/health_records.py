@@ -68,10 +68,7 @@ def index():
                          record_type=record_type,
                          today=date.today())
 
-from flask import render_template
-from flask_login import login_required
-from jinja2.exceptions import TemplateNotFound
-from datetime import date
+
 
 @bp.route('/type/<animal_type>')
 @login_required
