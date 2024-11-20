@@ -206,7 +206,7 @@ def add_sheep():
         'treatment_details': ''
     }
     
-    return render_template('health_records/add.html',
+    return render_template('health_records/sheep/add.html',
                          animal_type='Sheep',
                          data=data,
                          today=date.today())
@@ -307,7 +307,7 @@ def add_cattle():
             return redirect(url_for('health_records.add_cattle'))
     
     # For GET request, render the form template
-    return render_template('health_records/add_cattle.html',
+    return render_template('health_records/cattle/add_cattle.html',
                          animal_type='Cattle',
                          today=date.today())
 
@@ -535,7 +535,7 @@ def view(id):
         print(f"Error processing record: {str(e)}")  # For debugging
         data = {}
 
-    return render_template('health_records/view.html',
+    return render_template('health_records/sheep/view.html',
                          record=record,
                          data=data,
                          animal_type=record.animal.species,
