@@ -206,7 +206,7 @@ def add_sheep():
         'treatment_details': ''
     }
     
-    return render_template('health_records/add.html',
+    return render_template('health_records/sheep/add.html',
                          animal_type='Sheep',
                          data=data,
                          today=date.today())
@@ -535,7 +535,7 @@ def view(id):
         print(f"Error processing record: {str(e)}")  # For debugging
         data = {}
 
-    return render_template('health_records/view.html',
+    return render_template('health_records/sheep/view.html',
                          record=record,
                          data=data,
                          animal_type=record.animal.species,
@@ -593,7 +593,7 @@ def edit(id):
             'treatment_details': description.get('Parasite Control', {}).get('Treatment')
         }
         
-        return render_template('health_records/shared/edit.html',
+        return render_template('health_records/sheep/edit.html',
                             record=record,
                             data=data,
                             animal_type=animal_type)
