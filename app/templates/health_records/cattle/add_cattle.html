@@ -8,74 +8,59 @@
         <div class="col-lg-10">
             <div class="card">
                 <div class="card-header bg-success text-white">
-                    <h2 class="h5 mb-0">
-                        <i class="fas fa-cow me-2"></i>Add Cattle Health Record
-                    </h2>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-cow me-2"></i>Add Cattle Health Record
+                        </h2>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <form method="POST" id="healthRecordForm">
-                        <!-- Basic Identification -->
+                    <form method="POST" id="cattleHealthForm" class="needs-validation" novalidate>
+                        <!-- Basic Information -->
                         <div class="row mb-4">
-                            <h3 class="h6 text-muted mb-3">Basic Identification</h3>
+                            <h3 class="h6 text-muted mb-3">Basic Information</h3>
                             <div class="col-md-6 mb-3">
                                 <label for="tag_number" class="form-label">Tag Number *</label>
                                 <input type="text" class="form-control" id="tag_number" name="tag_number" required>
-                                <div id="tagNumberFeedback" class="invalid-feedback">
-                                    Cattle not found with this tag number.
+                                <div class="invalid-feedback">
+                                    Please enter a valid cattle tag number.
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="breed" class="form-label">Breed</label>
-                                <input type="text" class="form-control" id="breed" name="breed" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="date_of_birth" class="form-label">Date of Birth</label>
-                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="gender" class="form-label">Gender</label>
-                                <input type="text" class="form-control" id="gender" name="gender" readonly>
+                                <label for="record_date" class="form-label">Record Date</label>
+                                <input type="date" class="form-control" id="record_date" name="record_date" 
+                                       value="{{ today.strftime('%Y-%m-%d') }}" readonly>
                             </div>
                         </div>
 
-                        <!-- Vital Signs & Physical Examination -->
+                        <!-- Vital Signs -->
                         <div class="row mb-4">
-                            <h3 class="h6 text-muted mb-3">Vital Signs & Physical Examination</h3>
+                            <h3 class="h6 text-muted mb-3">Vital Signs</h3>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Temperature (°C)</label>
-                                <input type="number" step="0.1" class="form-control" name="temperature">
+                                <label for="temperature" class="form-label">Temperature (°C)</label>
+                                <input type="number" step="0.1" class="form-control" id="temperature" name="temperature">
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Heart Rate (BPM)</label>
-                                <input type="number" class="form-control" name="heart_rate">
+                                <label for="heart_rate" class="form-label">Heart Rate (BPM)</label>
+                                <input type="number" class="form-control" id="heart_rate" name="heart_rate">
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Respiratory Rate</label>
-                                <input type="number" class="form-control" name="respiratory_rate">
+                                <label for="respiratory_rate" class="form-label">Respiratory Rate</label>
+                                <input type="number" class="form-control" id="respiratory_rate" name="respiratory_rate">
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Weight (kg)</label>
-                                <input type="number" step="0.1" class="form-control" name="weight">
+                                <label for="weight" class="form-label">Weight (kg)</label>
+                                <input type="number" step="0.1" class="form-control" id="weight" name="weight">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Body Condition Score (1-5)</label>
-                                <select class="form-select" name="body_condition_score">
+                                <label for="body_condition_score" class="form-label">Body Condition Score</label>
+                                <select class="form-select" id="body_condition_score" name="body_condition_score">
                                     <option value="">Select Score</option>
                                     <option value="1">1 - Very Poor</option>
                                     <option value="2">2 - Poor</option>
-                                    <option value="3">3 - Average</option>
+                                    <option value="3">3 - Fair</option>
                                     <option value="4">4 - Good</option>
                                     <option value="5">5 - Excellent</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">General Health Status</label>
-                                <select class="form-select" name="health_status">
-                                    <option value="">Select Status</option>
-                                    <option value="Healthy">Healthy</option>
-                                    <option value="Sick">Sick</option>
-                                    <option value="Under Treatment">Under Treatment</option>
-                                    <option value="Recovery">Recovery</option>
                                 </select>
                             </div>
                         </div>
@@ -83,8 +68,8 @@
                         <!-- Vaccination Records -->
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Vaccination Records</h3>
-                            <div class="vaccination-records">
-                                <div class="row mb-2">
+                            <div class="col-12" id="vaccination-container">
+                                <div class="row mb-2 vaccination-record">
                                     <div class="col-md-4">
                                         <select class="form-select" name="vaccine_type[]">
                                             <option value="">Select Vaccine</option>
@@ -96,12 +81,10 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <input type="date" class="form-control" name="vaccine_date[]" 
-                                               placeholder="Date Given">
+                                        <input type="date" class="form-control" name="vaccine_date[]" placeholder="Date Given">
                                     </div>
                                     <div class="col-md-3">
-                                        <input type="date" class="form-control" name="vaccine_next_due[]" 
-                                               placeholder="Next Due">
+                                        <input type="date" class="form-control" name="vaccine_next_due[]" placeholder="Next Due">
                                     </div>
                                     <div class="col-md-2">
                                         <button type="button" class="btn btn-outline-success btn-sm add-vaccine">
@@ -116,8 +99,8 @@
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Reproductive Health</h3>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Reproductive Status</label>
-                                <select class="form-select" name="reproductive_status">
+                                <label for="reproductive_status" class="form-label">Status</label>
+                                <select class="form-select" id="reproductive_status" name="reproductive_status">
                                     <option value="">Select Status</option>
                                     <option value="Open">Open</option>
                                     <option value="Bred">Bred</option>
@@ -126,12 +109,12 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Last Calving Date</label>
-                                <input type="date" class="form-control" name="last_calving_date">
+                                <label for="last_calving_date" class="form-label">Last Calving Date</label>
+                                <input type="date" class="form-control" id="last_calving_date" name="last_calving_date">
                             </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">Calving Notes</label>
-                                <textarea class="form-control" name="calving_notes" rows="2"></textarea>
+                            <div class="col-12 mb-3">
+                                <label for="calving_notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="calving_notes" name="calving_notes" rows="2"></textarea>
                             </div>
                         </div>
 
@@ -139,74 +122,30 @@
                         <div class="row mb-4">
                             <h3 class="h6 text-muted mb-3">Milk Production</h3>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Daily Production (L)</label>
-                                <input type="number" step="0.1" class="form-control" name="milk_production">
+                                <label for="milk_production" class="form-label">Daily Production (L)</label>
+                                <input type="number" step="0.1" class="form-control" id="milk_production" name="milk_production">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Milk Quality</label>
-                                <select class="form-select" name="milk_quality">
-                                    <option value="">Select Quality</option>
+                                <label for="milk_quality" class="form-label">Quality Grade</label>
+                                <select class="form-select" id="milk_quality" name="milk_quality">
+                                    <option value="">Select Grade</option>
                                     <option value="Premium">Premium</option>
                                     <option value="Grade A">Grade A</option>
                                     <option value="Grade B">Grade B</option>
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Fat Content (%)</label>
-                                <input type="number" step="0.1" class="form-control" name="fat_content">
+                                <label for="fat_content" class="form-label">Fat Content (%)</label>
+                                <input type="number" step="0.1" class="form-control" id="fat_content" name="fat_content">
                             </div>
                         </div>
 
-                        <!-- Treatment & Medications -->
-                        <div class="row mb-4">
-                            <h3 class="h6 text-muted mb-3">Treatment & Medications</h3>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Treatment Type</label>
-                                <select class="form-select" name="treatment_type">
-                                    <option value="">Select Type</option>
-                                    <option value="Preventive">Preventive Care</option>
-                                    <option value="Emergency">Emergency Treatment</option>
-                                    <option value="Routine">Routine Check</option>
-                                    <option value="Surgery">Surgery</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Veterinarian</label>
-                                <input type="text" class="form-control" name="veterinarian">
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label">Treatment Details</label>
-                                <textarea class="form-control" name="treatment_details" rows="3"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Nutritional Management -->
-                        <div class="row mb-4">
-                            <h3 class="h6 text-muted mb-3">Nutritional Management</h3>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Feed Type</label>
-                                <select class="form-select" name="feed_type">
-                                    <option value="">Select Feed Type</option>
-                                    <option value="Hay">Hay</option>
-                                    <option value="Silage">Silage</option>
-                                    <option value="Grain">Grain</option>
-                                    <option value="Mixed">Mixed Feed</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Feed Amount (kg/day)</label>
-                                <input type="number" step="0.1" class="form-control" name="feed_amount">
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label">Dietary Notes</label>
-                                <textarea class="form-control" name="dietary_notes" rows="2"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-success">Save Record</button>
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Save Record
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -215,11 +154,11 @@
     </div>
 </div>
 
-<!-- Toast Container -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+<!-- Toast for notifications -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="recordToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
-            <strong class="me-auto" id="toastTitle"></strong>
+            <strong class="me-auto" id="toastTitle">Notification</strong>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body" id="toastMessage"></div>
@@ -230,83 +169,103 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('healthRecordForm');
+    const form = document.getElementById('cattleHealthForm');
     const tagInput = document.getElementById('tag_number');
-
-    // Add vaccine record functionality
-    const addVaccineBtn = document.querySelector('.add-vaccine');
-    const vaccinationRecords = document.querySelector('.vaccination-records');
-
-    addVaccineBtn.addEventListener('click', function() {
-        const newRecord = vaccinationRecords.children[0].cloneNode(true);
-        newRecord.querySelectorAll('input, select').forEach(input => input.value = '');
-        const button = newRecord.querySelector('button');
-        button.className = 'btn btn-outline-danger btn-sm remove-record';
-        button.querySelector('i').className = 'fas fa-minus';
-        vaccinationRecords.appendChild(newRecord);
-    });
-
-    // Remove record functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-record')) {
-            e.target.closest('.row').remove();
-        }
-    });
-
-    // Tag number validation
-    tagInput.addEventListener('blur', async function() {
-        const tagNumber = this.value.trim();
-        if (tagNumber) {
-            try {
-                const response = await fetch(`/health-records/get-animal/${tagNumber}`);
-                const data = await response.json();
-                
-                if (response.ok && data.species === 'Cattle') {
-                    tagInput.classList.remove('is-invalid');
-                    tagInput.classList.add('is-valid');
-                    
-                    // Populate breed and other fields
-                    document.getElementById('breed').value = data.breed || '';
-                    document.getElementById('date_of_birth').value = data.date_of_birth || '';
-                    document.getElementById('gender').value = data.gender || '';
-                } else {
-                    tagInput.classList.remove('is-valid');
-                    tagInput.classList.add('is-invalid');
-                    document.getElementById('tagNumberFeedback').textContent = 
-                        'Invalid cattle tag number';
-                }
-            } catch (error) {
-                console.error('Error checking tag number:', error);
-            }
-        }
-    });
-
-    // Form submission
+    
+    // Add validation for the form
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const submitButton = this.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
+        if (!this.checkValidity()) {
+            e.stopPropagation();
+            this.classList.add('was-validated');
+            return;
+        }
         
         try {
             const formData = new FormData(this);
             const response = await fetch(window.location.href, {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
                 body: formData
             });
             
             const result = await response.json();
             
-            if (response.ok) {
-                showToast(result.message, 'success');
+            if (result.success) {
+                // Show success message
+                const toast = new bootstrap.Toast(document.getElementById('recordToast'));
+                document.getElementById('toastTitle').textContent = 'Success';
+                document.getElementById('toastMessage').textContent = result.message;
+                toast.show();
+                
+                // Redirect after a short delay
                 setTimeout(() => {
                     window.location.href = "{{ url_for('health_records.index') }}";
                 }, 1500);
             } else {
-                showToast(result.message || 'Error saving record', 'error');
-                submitButton.disabled = false;
+                // Show error message
+                const toast = new bootstrap.Toast(document.getElementById('recordToast'));
+                document.getElementById('toastTitle').textContent = 'Error';
+                document.getElementById('toastMessage').textContent = result.message;
+                toast.show();
             }
-        } catch
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+    
+    // Add vaccination record functionality
+    document.querySelector('.add-vaccine').addEventListener('click', function() {
+        const container = document.getElementById('vaccination-container');
+        const newRecord = container.children[0].cloneNode(true);
+        
+        // Clear the values
+        newRecord.querySelectorAll('input, select').forEach(input => input.value = '');
+        
+        // Change the add button to remove button
+        const button = newRecord.querySelector('button');
+        button.className = 'btn btn-outline-danger btn-sm remove-vaccine';
+        button.innerHTML = '<i class="fas fa-minus"></i>';
+        
+        container.appendChild(newRecord);
+    });
+    
+    // Remove vaccination record functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-vaccine')) {
+            e.target.closest('.vaccination-record').remove();
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        padding: 1rem;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .h6 {
+        color: #6c757d;
+    }
+    .mb-4 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1.5rem;
+    }
+    .mb-4:last-child {
+        border-bottom: none;
+    }
+    .toast {
+        background-color: white;
+    }
+    .toast-header {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}

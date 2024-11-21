@@ -210,29 +210,41 @@ def add_sheep():
                          animal_type='Sheep',
                          data=data,
                          today=date.today())
+# Update the cattle route in health_records.py
 @bp.route('/cattle/add', methods=['GET', 'POST'])
 @login_required
 def add_cattle():
+    """Add a new cattle health record"""
     if request.method == 'POST':
         try:
             tag_number = request.form.get('tag_number')
             cattle = Animal.query.filter_by(tag_number=tag_number, species='Cattle').first()
             
             if not cattle:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({
+                        'success': False, 
+                        'message': 'Cattle not found with this tag number'
+                    }), 404
                 flash('Cattle not found with this tag number', 'danger')
                 return redirect(url_for('health_records.add_cattle'))
-            
-            # Check for existing record today
+
+            # Check for existing record
             existing_record = HealthRecord.query.filter_by(
                 animal_id=cattle.id,
                 date=date.today()
             ).first()
             
             if existing_record:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({
+                        'success': False,
+                        'message': 'A health record already exists for this cattle today'
+                    }), 400
                 flash('A health record already exists for this cattle today', 'warning')
                 return redirect(url_for('health_records.add_cattle'))
 
-            # Organize the data in a structured format
+            # Structure the data
             description = {
                 "Vital Signs": {
                     "Temperature": request.form.get('temperature'),
@@ -280,6 +292,7 @@ def add_cattle():
                 }
             }
 
+            # Create the record
             record = HealthRecord(
                 animal_id=cattle.id,
                 record_type='Health Check',
@@ -293,7 +306,10 @@ def add_cattle():
             db.session.commit()
             
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'success': True, 'message': 'Health record added successfully!'})
+                return jsonify({
+                    'success': True,
+                    'message': 'Health record added successfully!'
+                })
             
             flash('Health record added successfully!', 'success')
             return redirect(url_for('health_records.index'))
@@ -301,14 +317,16 @@ def add_cattle():
         except Exception as e:
             db.session.rollback()
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'success': False, 'message': str(e)}), 400
+                return jsonify({
+                    'success': False,
+                    'message': str(e)
+                }), 400
             
             flash(f'Error adding health record: {str(e)}', 'danger')
             return redirect(url_for('health_records.add_cattle'))
     
-    # For GET request, render the form template
-    return render_template('health_records/add_cattle.html',
-                         animal_type='Cattle',
+    # For GET requests
+    return render_template('health_records/cattle/add_cattle.html',
                          today=date.today())
 
 @bp.route('/goat/add', methods=['GET', 'POST'])
