@@ -186,31 +186,50 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             const response = await fetch(window.location.href, {
                 method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'  // Added this header
+                },
                 body: formData
             });
             
             const result = await response.json();
             
             if (result.success) {
-                // Show success message
-                const toast = new bootstrap.Toast(document.getElementById('recordToast'));
-                document.getElementById('toastTitle').textContent = 'Success';
-                document.getElementById('toastMessage').textContent = result.message;
-                toast.show();
-                
-                // Redirect after a short delay
+                showToast('Success', result.message);
+                // Redirect to the view page if provided, otherwise go to index
                 setTimeout(() => {
-                    window.location.href = "{{ url_for('health_records.index') }}";
+                    window.location.href = result.redirectUrl || "{{ url_for('health_records.index') }}";
                 }, 1500);
             } else {
-                // Show error message
-                const toast = new bootstrap.Toast(document.getElementById('recordToast'));
-                document.getElementById('toastTitle').textContent = 'Error';
-                document.getElementById('toastMessage').textContent = result.message;
-                toast.show();
+                showToast('Error', result.message || 'Error saving record');
             }
         } catch (error) {
             console.error('Error:', error);
+            showToast('Error', 'An error occurred while saving the record');
+        }
+    });
+    
+    // Tag number validation
+    tagInput.addEventListener('blur', async function() {
+        const tagNumber = this.value.trim();
+        if (tagNumber) {
+            try {
+                const response = await fetch(`/health-records/get-animal/${tagNumber}`);
+                const data = await response.json();
+                
+                if (response.ok && data.species === 'Cattle') {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                    showToast('Error', 'Invalid cattle tag number');
+                }
+            } catch (error) {
+                console.error('Error checking tag number:', error);
+                this.classList.add('is-invalid');
+                showToast('Error', 'Error verifying tag number');
+            }
         }
     });
     
@@ -237,6 +256,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Toast notification helper
+function showToast(title, message) {
+    const toast = document.getElementById('recordToast');
+    if (!toast) {
+        console.error('Toast element not found');
+        return;
+    }
+    
+    const bsToast = new bootstrap.Toast(toast);
+    const titleEl = document.getElementById('toastTitle');
+    const messageEl = document.getElementById('toastMessage');
+    
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
+    
+    bsToast.show();
+}
 </script>
 {% endblock %}
 

@@ -171,7 +171,7 @@
                     <!-- Action Buttons -->
                     <div class="d-flex justify-content-end mt-4">
                         <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Back</a>
-                        <a href="{{ url_for('health_records.edit', id=record.id) }}" class="btn btn-warning me-2">
+                        <a href="{{ url_for('health_records.edit_cattle', id=record.id) }}" class="btn btn-warning me-2"></a>
                             <i class="fas fa-edit me-1"></i>Edit
                         </a>
                         <button onclick="confirmDelete({{ record.id }})" class="btn btn-danger">
