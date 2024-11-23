@@ -627,7 +627,7 @@ def view(id):
         data = {}
 
         if record.animal.species == 'Sheep':
-            # Structure data for sheep view
+            # Keep existing sheep data structure
             data = {
                 # Basic Information
                 'tag_number': record.animal.tag_number,
@@ -667,54 +667,60 @@ def view(id):
             template = 'health_records/sheep/view.html'
 
         elif record.animal.species == 'Cattle':
-            # Structure data for cattle view
+            # Structure data for cattle view matching the form
             data = {
+                # Basic Information
+                'basic_info': {
+                    'tag_number': record.animal.tag_number,
+                    'weight': description.get('Vital Signs', {}).get('Weight'),
+                    'record_date': record.date.strftime('%Y-%m-%d')
+                },
+                
+                # Vital Signs
                 'vital_signs': {
-                    'temperature': description.get('Vital Signs', {}).get('Temperature', 'N/A'),
-                    'heart_rate': description.get('Vital Signs', {}).get('Heart Rate', 'N/A'),
-                    'respiratory_rate': description.get('Vital Signs', {}).get('Respiratory Rate', 'N/A'),
-                    'weight': description.get('Vital Signs', {}).get('Weight', 'N/A'),
+                    'temperature': f"{description.get('Vital Signs', {}).get('Temperature', 'N/A')}°C",
+                    'heart_rate': f"{description.get('Vital Signs', {}).get('Heart Rate', 'N/A')} BPM",
+                    'respiratory_rate': f"{description.get('Vital Signs', {}).get('Respiratory Rate', 'N/A')}/min",
                     'body_condition_score': description.get('Vital Signs', {}).get('Body Condition Score', 'N/A')
                 },
-                'vaccination_records': {
-                    'vaccines': [
-                        {
-                            'type': vaccine.get('Type', 'N/A'),
-                            'date_given': vaccine.get('Date Given', 'N/A'),
-                            'next_due': vaccine.get('Next Due', 'N/A'),
-                            'is_due': False  # Will be updated below
-                        }
-                        for vaccine in description.get('Vaccination Records', {}).get('Vaccines', [])
-                    ]
-                },
+
+                # Milk Production
                 'milk_production': {
-                    'daily_volume': description.get('Milk Production', {}).get('Daily Volume', 'N/A'),
+                    'daily_volume': f"{description.get('Milk Production', {}).get('Daily Volume', 'N/A')} L",
                     'quality_grade': description.get('Milk Production', {}).get('Quality Grade', 'N/A'),
-                    'fat_content': description.get('Milk Production', {}).get('Fat Content', 'N/A')
+                    'fat_content': f"{description.get('Milk Production', {}).get('Fat Content', 'N/A')}%"
                 },
+
+                # Vaccination Records - now as a list for easier table rendering
+                'vaccination_records': [
+                    {
+                        'type': vaccine.get('Type', 'N/A'),
+                        'date_given': vaccine.get('Date Given', 'N/A'),
+                        'next_due': vaccine.get('Next Due', 'N/A'),
+                        'status': 'Up to date'  # Will be updated below
+                    }
+                    for vaccine in description.get('Vaccination Records', {}).get('Vaccines', [])
+                ],
+
+                # Reproductive Health
                 'reproductive_health': {
                     'status': description.get('Reproductive Health', {}).get('Status', 'N/A'),
                     'last_calving_date': description.get('Reproductive Health', {}).get('Last Calving Date', 'N/A'),
                     'notes': description.get('Reproductive Health', {}).get('Notes', 'N/A')
-                },
-                'treatment': {
-                    'type': description.get('Treatment', {}).get('Type', 'N/A'),
-                    'veterinarian': description.get('Treatment', {}).get('Veterinarian', 'N/A'),
-                    'details': description.get('Treatment', {}).get('Details', 'N/A')
                 }
             }
 
-            # Calculate is_due for vaccines
+            # Update vaccination statuses
             today = date.today()
-            for vaccine in data['vaccination_records']['vaccines']:
+            for vaccine in data['vaccination_records']:
                 if vaccine['next_due'] != 'N/A':
                     try:
                         next_due_date = datetime.strptime(vaccine['next_due'], '%Y-%m-%d').date()
-                        vaccine['is_due'] = next_due_date <= today
+                        vaccine['status'] = 'Due' if next_due_date <= today else 'Up to date'
                     except (ValueError, TypeError):
-                        vaccine['is_due'] = False
+                        vaccine['status'] = 'N/A'
                         
-            template = 'health_records/cattle/view_cattle.html'
+            template = 'health_records/cattle/view_cattle.html'  # Changed from view_cattle.html
             
         else:
             flash('Unsupported animal type', 'warning')

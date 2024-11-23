@@ -1,7 +1,6 @@
-<!-- templates/health_records/cattle/view.html -->
 {% extends "base.html" %}
 
-{% block title %}Health Record Details{% endblock %}
+{% block title %}Cattle Health Record Details{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -33,13 +32,13 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
-                    <p><strong>Tag Number:</strong> {{ record.animal.tag_number }}</p>
+                    <strong>Tag Number:</strong> {{ data.basic_info.tag_number }}
                 </div>
                 <div class="col-md-4">
-                    <p><strong>Weight:</strong> {{ data.vital_signs.weight }} kg</p>
+                    <strong>Weight:</strong> {{ data.basic_info.weight }} kg
                 </div>
                 <div class="col-md-4">
-                    <p><strong>Record Date:</strong> {{ record.date.strftime('%Y-%m-%d') }}</p>
+                    <strong>Record Date:</strong> {{ data.basic_info.record_date }}
                 </div>
             </div>
         </div>
@@ -53,16 +52,16 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3">
-                    <p><strong>Temperature:</strong> {{ data.vital_signs.temperature }}°C</p>
+                    <strong>Temperature:</strong> {{ data.vital_signs.temperature }}°C
                 </div>
                 <div class="col-md-3">
-                    <p><strong>Heart Rate:</strong> {{ data.vital_signs.heart_rate }} BPM</p>
+                    <strong>Heart Rate:</strong> {{ data.vital_signs.heart_rate }} BPM
                 </div>
                 <div class="col-md-3">
-                    <p><strong>Respiratory Rate:</strong> {{ data.vital_signs.respiratory_rate }}/min</p>
+                    <strong>Respiratory Rate:</strong> {{ data.vital_signs.respiratory_rate }}/min
                 </div>
                 <div class="col-md-3">
-                    <p><strong>Body Condition Score:</strong> {{ data.vital_signs.body_condition_score }}</p>
+                    <strong>Body Condition Score:</strong> {{ data.vital_signs.body_condition_score }}
                 </div>
             </div>
         </div>
@@ -71,18 +70,18 @@
     <!-- Milk Production -->
     <div class="card mb-3">
         <div class="card-header bg-info text-white">
-            <i class="fas fa-glass-milk me-2"></i>Milk Production
+            <i class="fas fa-milk-bottle me-2"></i>Milk Production
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
-                    <p><strong>Daily Volume:</strong> {{ data.milk_production.daily_volume }} L</p>
+                    <strong>Daily Volume:</strong> {{ data.milk_production.daily_volume }} L
                 </div>
                 <div class="col-md-4">
-                    <p><strong>Quality Grade:</strong> {{ data.milk_production.quality_grade }}</p>
+                    <strong>Quality Grade:</strong> {{ data.milk_production.quality_grade }}
                 </div>
                 <div class="col-md-4">
-                    <p><strong>Fat Content:</strong> {{ data.milk_production.fat_content }}%</p>
+                    <strong>Fat Content:</strong> {{ data.milk_production.fat_content }}%
                 </div>
             </div>
         </div>
@@ -94,33 +93,50 @@
             <i class="fas fa-syringe me-2"></i>Vaccination Records
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Vaccine Type</th>
-                            <th>Date Given</th>
-                            <th>Next Due</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for vaccine in data.vaccination_records.vaccines %}
-                        <tr>
-                            <td>{{ vaccine.type }}</td>
-                            <td>{{ vaccine.date_given }}</td>
-                            <td>{{ vaccine.next_due }}</td>
-                            <td>
-                                {% if vaccine.is_due %}
-                                <span class="badge bg-danger">Due</span>
-                                {% else %}
-                                <span class="badge bg-success">Up to date</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Vaccine Type</th>
+                        <th>Date Given</th>
+                        <th>Next Due</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vaccine in data.vaccination_records %}
+                    <tr>
+                        <td>{{ vaccine.type }}</td>
+                        <td>{{ vaccine.date_given }}</td>
+                        <td>{{ vaccine.next_due }}</td>
+                        <td>
+                            <span class="badge {% if vaccine.status == 'Due' %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ vaccine.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Reproductive Health -->
+    <div class="card mb-3">
+        <div class="card-header bg-purple text-white">
+            <i class="fas fa-venus me-2"></i>Reproductive Health
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Status:</strong> {{ data.reproductive_health.status }}
+                </div>
+                <div class="col-md-4">
+                    <strong>Last Calving Date:</strong> {{ data.reproductive_health.last_calving_date }}
+                </div>
+                <div class="col-md-12 mt-2">
+                    <strong>Notes:</strong><br>
+                    {{ data.reproductive_health.notes or 'No notes available' }}
+                </div>
             </div>
         </div>
     </div>
@@ -147,6 +163,21 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        padding: 0.75rem 1.25rem;
+    }
+    .bg-purple {
+        background-color: #6f42c1;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
