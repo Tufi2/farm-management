@@ -331,6 +331,7 @@ def add_cattle():
     
     
 
+
 @bp.route('/cattle/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_cattle(id):
@@ -618,64 +619,116 @@ def add(animal_id):
 @bp.route('/<int:id>')
 @login_required
 def view(id):
+    """View a health record with species-specific details"""
     record = HealthRecord.query.get_or_404(id)
-    
-    
-    # Add validation for sheep records
-    if record.animal.species != 'Sheep':
-        flash('Invalid record type. Please use the appropriate view page.', 'warning')
-        return redirect(url_for('health_records.index'))
     
     try:
         description = json.loads(record.description) if record.description else {}
-        
-        # Extract data for the template
-        data = {
-            # Basic Information
-            'tag_number': record.animal.tag_number,
-            'weight': description.get('Basic Information', {}).get('Weight'),  # Changed from Physical Condition to Basic Information
-            'record_date': record.date.strftime('%Y-%m-%d'),
+        data = {}
+
+        if record.animal.species == 'Sheep':
+            # Structure data for sheep view
+            data = {
+                # Basic Information
+                'tag_number': record.animal.tag_number,
+                'weight': description.get('Basic Information', {}).get('Weight'),
+                'record_date': record.date.strftime('%Y-%m-%d'),
+                
+                # Health Status
+                'health_status': description.get('Health Status', {}).get('Current'),
+                'vaccination_status': description.get('Health Status', {}).get('Vaccination'),
+                
+                # Lambing History
+                'pregnancy_status': description.get('Lambing', {}).get('Status'),
+                'due_date': description.get('Lambing', {}).get('Due Date'),
+                'number_of_lambs': description.get('Lambing', {}).get('Number of Lambs'),
+                'lambing_ease': description.get('Lambing', {}).get('Lambing Ease'),
+                'lambing_notes': description.get('Lambing', {}).get('Notes'),
+                
+                # Foot Health
+                'foot_condition': description.get('Foot Health', {}).get('Condition'),
+                'last_foot_check': description.get('Foot Health', {}).get('Last Check'),
+                'foot_notes': description.get('Foot Health', {}).get('Notes'),
+                
+                # Behavior
+                'behavior_pattern': description.get('Behavior', {}).get('Pattern'),
+                'stress_level': description.get('Behavior', {}).get('Stress Level'),
+                'behavior_notes': description.get('Behavior', {}).get('Notes'),
+                
+                # Wool Quality
+                'wool_quality': description.get('Wool Quality', {}).get('Condition'),
+                'wool_texture': description.get('Wool Quality', {}).get('Texture'),
+                'last_shearing': description.get('Wool Quality', {}).get('Last Shearing'),
+                'next_shearing': description.get('Wool Quality', {}).get('Next Shearing'),
+                
+                # Treatment Details
+                'treatment_details': record.treatment
+            }
+            template = 'health_records/sheep/view.html'
+
+        elif record.animal.species == 'Cattle':
+            # Structure data for cattle view
+            data = {
+                'vital_signs': {
+                    'temperature': description.get('Vital Signs', {}).get('Temperature', 'N/A'),
+                    'heart_rate': description.get('Vital Signs', {}).get('Heart Rate', 'N/A'),
+                    'respiratory_rate': description.get('Vital Signs', {}).get('Respiratory Rate', 'N/A'),
+                    'weight': description.get('Vital Signs', {}).get('Weight', 'N/A'),
+                    'body_condition_score': description.get('Vital Signs', {}).get('Body Condition Score', 'N/A')
+                },
+                'vaccination_records': {
+                    'vaccines': [
+                        {
+                            'type': vaccine.get('Type', 'N/A'),
+                            'date_given': vaccine.get('Date Given', 'N/A'),
+                            'next_due': vaccine.get('Next Due', 'N/A'),
+                            'is_due': False  # Will be updated below
+                        }
+                        for vaccine in description.get('Vaccination Records', {}).get('Vaccines', [])
+                    ]
+                },
+                'milk_production': {
+                    'daily_volume': description.get('Milk Production', {}).get('Daily Volume', 'N/A'),
+                    'quality_grade': description.get('Milk Production', {}).get('Quality Grade', 'N/A'),
+                    'fat_content': description.get('Milk Production', {}).get('Fat Content', 'N/A')
+                },
+                'reproductive_health': {
+                    'status': description.get('Reproductive Health', {}).get('Status', 'N/A'),
+                    'last_calving_date': description.get('Reproductive Health', {}).get('Last Calving Date', 'N/A'),
+                    'notes': description.get('Reproductive Health', {}).get('Notes', 'N/A')
+                },
+                'treatment': {
+                    'type': description.get('Treatment', {}).get('Type', 'N/A'),
+                    'veterinarian': description.get('Treatment', {}).get('Veterinarian', 'N/A'),
+                    'details': description.get('Treatment', {}).get('Details', 'N/A')
+                }
+            }
+
+            # Calculate is_due for vaccines
+            today = date.today()
+            for vaccine in data['vaccination_records']['vaccines']:
+                if vaccine['next_due'] != 'N/A':
+                    try:
+                        next_due_date = datetime.strptime(vaccine['next_due'], '%Y-%m-%d').date()
+                        vaccine['is_due'] = next_due_date <= today
+                    except (ValueError, TypeError):
+                        vaccine['is_due'] = False
+                        
+            template = 'health_records/cattle/view_cattle.html'
             
-            # Health Status
-            'health_status': description.get('Health Status', {}).get('Current'),
-            'vaccination_status': description.get('Health Status', {}).get('Vaccination'),
-            
-            # Lambing History
-            'pregnancy_status': description.get('Lambing', {}).get('Status'),
-            'due_date': description.get('Lambing', {}).get('Due Date'),
-            'number_of_lambs': description.get('Lambing', {}).get('Number of Lambs'),
-            'lambing_ease': description.get('Lambing', {}).get('Lambing Ease'),
-            'lambing_notes': description.get('Lambing', {}).get('Notes'),
-            
-            # Foot Health
-            'foot_condition': description.get('Foot Health', {}).get('Condition'),
-            'last_foot_check': description.get('Foot Health', {}).get('Last Check'),
-            'foot_notes': description.get('Foot Health', {}).get('Notes'),
-            
-            # Behavior (matches the add_sheep structure)
-            'behavior_pattern': description.get('Behavior', {}).get('Pattern'),
-            'stress_level': description.get('Behavior', {}).get('Stress Level'),
-            'behavior_notes': description.get('Behavior', {}).get('Notes'),
-            
-            # Wool Quality
-            'wool_quality': description.get('Wool Quality', {}).get('Condition'),
-            'wool_texture': description.get('Wool Quality', {}).get('Texture'),
-            'last_shearing': description.get('Wool Quality', {}).get('Last Shearing'),
-            'next_shearing': description.get('Wool Quality', {}).get('Next Shearing'),
-            
-            # Treatment Details (matches add_sheep structure)
-            'treatment_details': record.treatment
-        }
+        else:
+            flash('Unsupported animal type', 'warning')
+            return redirect(url_for('health_records.index'))
+
+        return render_template(template,
+                            record=record,
+                            data=data,
+                            today=date.today())
 
     except Exception as e:
         print(f"Error processing record: {str(e)}")  # For debugging
-        data = {}
-
-    return render_template('health_records/sheep/view.html',
-                         record=record,
-                         data=data,
-                         animal_type='Sheep',
-                         today=date.today())
+        flash(f"Error loading health record: {str(e)}", 'danger')
+        return redirect(url_for('health_records.index'))
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
