@@ -329,9 +329,6 @@ def add_cattle():
     return render_template('health_records/cattle/add_cattle.html',
                          today=date.today())
     
-    
-
-
 @bp.route('/cattle/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_cattle(id):
@@ -346,24 +343,49 @@ def edit_cattle(id):
         try:
             description = json.loads(record.description) if record.description else {}
             
-            # Extract data for the form
+            # Structure data to match template expectations
             data = {
-                'temperature': description.get('Vital Signs', {}).get('Temperature'),
-                'heart_rate': description.get('Vital Signs', {}).get('Heart Rate'),
-                'respiratory_rate': description.get('Vital Signs', {}).get('Respiratory Rate'),
-                'weight': description.get('Vital Signs', {}).get('Weight'),
-                'body_condition_score': description.get('Vital Signs', {}).get('Body Condition Score'),
-                'vaccination_records': description.get('Vaccination Records', {}).get('Vaccines', []),
-                'reproductive_status': description.get('Reproductive Health', {}).get('Status'),
-                'last_calving_date': description.get('Reproductive Health', {}).get('Last Calving Date'),
-                'calving_notes': description.get('Reproductive Health', {}).get('Notes'),
-                'milk_production': description.get('Milk Production', {}).get('Daily Volume'),
-                'milk_quality': description.get('Milk Production', {}).get('Quality Grade'),
-                'fat_content': description.get('Milk Production', {}).get('Fat Content'),
-                'treatment_type': description.get('Treatment', {}).get('Type'),
-                'veterinarian': description.get('Treatment', {}).get('Veterinarian'),
-                'treatment_details': description.get('Treatment', {}).get('Details')
+                'vital_signs': {
+                    'temperature': description.get('Vital Signs', {}).get('Temperature', ''),
+                    'heart_rate': description.get('Vital Signs', {}).get('Heart Rate', ''),
+                    'respiratory_rate': description.get('Vital Signs', {}).get('Respiratory Rate', ''),
+                    'weight': description.get('Vital Signs', {}).get('Weight', ''),
+                    'body_condition_score': description.get('Vital Signs', {}).get('Body Condition Score', '')
+                },
+                'vaccination_records': {
+                    'vaccines': [
+                        {
+                            'type': vaccine.get('Type', ''),
+                            'date_given': vaccine.get('Date Given', ''),
+                            'next_due': vaccine.get('Next Due', '')
+                        }
+                        for vaccine in description.get('Vaccination Records', {}).get('Vaccines', [])
+                    ]
+                },
+                'reproductive_health': {
+                    'status': description.get('Reproductive Health', {}).get('Status', ''),
+                    'last_calving_date': description.get('Reproductive Health', {}).get('Last Calving Date', ''),
+                    'notes': description.get('Reproductive Health', {}).get('Notes', '')
+                },
+                'milk_production': {
+                    'daily_volume': description.get('Milk Production', {}).get('Daily Volume', ''),
+                    'quality_grade': description.get('Milk Production', {}).get('Quality Grade', ''),
+                    'fat_content': description.get('Milk Production', {}).get('Fat Content', '')
+                },
+                'treatment': {
+                    'type': description.get('Treatment', {}).get('Type', ''),
+                    'veterinarian': description.get('Treatment', {}).get('Veterinarian', ''),
+                    'details': description.get('Treatment', {}).get('Details', '')
+                }
             }
+
+            # Ensure at least one vaccination record exists for the form
+            if not data['vaccination_records']['vaccines']:
+                data['vaccination_records']['vaccines'] = [{
+                    'type': '',
+                    'date_given': '',
+                    'next_due': ''
+                }]
             
             return render_template('health_records/cattle/edit_cattle.html',
                                record=record,
@@ -424,11 +446,11 @@ def edit_cattle(id):
                 return jsonify({
                     'success': True,
                     'message': 'Health record updated successfully',
-                    'redirectUrl': url_for('health_records.view_cattle', id=record.id)
+                    'redirectUrl': url_for('health_records.view', id=record.id)  # Updated the redirect URL
                 })
             
             flash('Health record updated successfully!', 'success')
-            return redirect(url_for('health_records.view_cattle', id=record.id))
+            return redirect(url_for('health_records.view', id=record.id))  # Updated the redirect URL
             
         except Exception as e:
             db.session.rollback()
@@ -436,7 +458,9 @@ def edit_cattle(id):
                 return jsonify({'success': False, 'message': str(e)}), 400
             
             flash(f'Error updating health record: {str(e)}', 'danger')
-            return redirect(url_for('health_records.edit_cattle', id=record.id))    
+            return redirect(url_for('health_records.edit_cattle', id=record.id))   
+
+
 
     
 
@@ -739,130 +763,183 @@ def view(id):
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit(id):
-    """Edit an sheep health record"""
+    """Edit health record with species-specific forms"""
     record = HealthRecord.query.get_or_404(id)
-    
-   # Add validation for sheep records
-    if record.animal.species != 'Sheep':
-        flash('Invalid record type. Please use the appropriate edit page.', 'warning')
-        return redirect(url_for('health_records.index')) 
-    
     
     try:
         description = json.loads(record.description) if record.description else {}
-    except:
-        description = {}
-    
-    if request.method == 'GET':
-        # Extract data from the description dictionary
-        data = {
-            # Basic Information
-            'tag_number': record.animal.tag_number,
-            'weight': description.get('Physical Condition', {}).get('Weight'),
-            
-            # Health Status
-            'health_status': description.get('Health Status', {}).get('Current'),
-            'vaccination_status': description.get('Health Status', {}).get('Vaccination'),
-            
-            # Lambing History
-            'pregnancy_status': description.get('Lambing', {}).get('Status'),
-            'due_date': description.get('Lambing', {}).get('Due Date'),
-            'number_of_lambs': description.get('Lambing', {}).get('Number of Lambs'),
-            'lambing_ease': description.get('Lambing', {}).get('Lambing Ease'),
-            'lambing_notes': description.get('Lambing', {}).get('Notes'),
-            
-            # Foot Health
-            'foot_condition': description.get('Foot Health', {}).get('Condition'),
-            'last_foot_check': description.get('Foot Health', {}).get('Last Check'),
-            'foot_notes': description.get('Foot Health', {}).get('Notes'),
-            
-            # Behavior (changed from Flock Behavior to match add route)
-            'behavior_pattern': description.get('Behavior', {}).get('Pattern'),
-            'stress_level': description.get('Behavior', {}).get('Stress Level'),
-            'behavior_notes': description.get('Behavior', {}).get('Notes'),
-            
-            # Wool Quality
-            'wool_quality': description.get('Wool Quality', {}).get('Condition'),
-            'wool_texture': description.get('Wool Quality', {}).get('Texture'),
-            'last_shearing': description.get('Wool Quality', {}).get('Last Shearing'),
-            'next_shearing': description.get('Wool Quality', {}).get('Next Shearing'),
-            
-            # Parasite Control
-            'last_check_date': description.get('Parasite Control', {}).get('Last Check Date'),
-            'parasite_status': description.get('Parasite Control', {}).get('Status'),
-            'treatment_details': description.get('Parasite Control', {}).get('Treatment')
-        }
         
-        return render_template('health_records/sheep/edit.html',
-                            record=record,
-                            data=data,
-                            animal_type='Sheep')
-
-    if request.method == 'POST':
-        try:
-            # Build updated description dictionary
-            description = {
-                "Physical Condition": {
-                    "Weight": request.form.get('weight'),
-                    "Notes": request.form.get('physical_notes')
-                },
-                "Health Status": {
-                    "Current": request.form.get('health_status'),
-                    "Vaccination": request.form.get('vaccination_status')
-                },
-                "Lambing": {
-                    "Status": request.form.get('pregnancy_status'),
-                    "Due Date": request.form.get('due_date'),
-                    "Number of Lambs": request.form.get('number_of_lambs'),
-                    "Lambing Ease": request.form.get('lambing_ease'),
-                    "Notes": request.form.get('lambing_notes')
-                },
-                "Foot Health": {
-                    "Condition": request.form.get('foot_condition'),
-                    "Last Check": request.form.get('last_foot_check'),
-                    "Notes": request.form.get('foot_notes')
-                },
-                "Behavior": {  # Changed from Flock Behavior to match add route
-                    "Pattern": request.form.get('behavior_pattern'),
-                    "Stress Level": request.form.get('stress_level'),
-                    "Notes": request.form.get('behavior_notes')
-                },
-                "Wool Quality": {
-                    "Condition": request.form.get('wool_quality'),
-                    "Texture": request.form.get('wool_texture'),
-                    "Last Shearing": request.form.get('last_shearing'),
-                    "Next Shearing": request.form.get('next_shearing')
-                },
-                "Parasite Control": {
-                    "Last Check Date": request.form.get('last_check_date'),
-                    "Status": request.form.get('parasite_status'),
-                    "Treatment": request.form.get('treatment_details')
+        if record.animal.species == 'Sheep':
+            if request.method == 'GET':
+                # Structure data for sheep edit form
+                data = {
+                    # Basic Information
+                    'tag_number': record.animal.tag_number,
+                    'weight': description.get('Physical Condition', {}).get('Weight'),
+                    
+                    # Health Status
+                    'health_status': description.get('Health Status', {}).get('Current'),
+                    'vaccination_status': description.get('Health Status', {}).get('Vaccination'),
+                    
+                    # Lambing History
+                    'pregnancy_status': description.get('Lambing', {}).get('Status'),
+                    'due_date': description.get('Lambing', {}).get('Due Date'),
+                    'number_of_lambs': description.get('Lambing', {}).get('Number of Lambs'),
+                    'lambing_ease': description.get('Lambing', {}).get('Lambing Ease'),
+                    'lambing_notes': description.get('Lambing', {}).get('Notes'),
+                    
+                    # Foot Health
+                    'foot_condition': description.get('Foot Health', {}).get('Condition'),
+                    'last_foot_check': description.get('Foot Health', {}).get('Last Check'),
+                    'foot_notes': description.get('Foot Health', {}).get('Notes'),
+                    
+                    # Behavior
+                    'behavior_pattern': description.get('Behavior', {}).get('Pattern'),
+                    'stress_level': description.get('Behavior', {}).get('Stress Level'),
+                    'behavior_notes': description.get('Behavior', {}).get('Notes'),
+                    
+                    # Wool Quality
+                    'wool_quality': description.get('Wool Quality', {}).get('Condition'),
+                    'wool_texture': description.get('Wool Quality', {}).get('Texture'),
+                    'last_shearing': description.get('Wool Quality', {}).get('Last Shearing'),
+                    'next_shearing': description.get('Wool Quality', {}).get('Next Shearing'),
+                    
+                    # Treatment Details
+                    'treatment_details': record.treatment
                 }
-            }
+                template = 'health_records/sheep/edit.html'
 
-            # Validate required fields
-            if not request.form.get('health_status'):
-                raise ValueError("Health Status is required")
+            elif request.method == 'POST':
+                # Process sheep form submission
+                description = {
+                    "Physical Condition": {
+                        "Weight": request.form.get('weight'),
+                        "Notes": request.form.get('physical_notes')
+                    },
+                    "Health Status": {
+                        "Current": request.form.get('health_status'),
+                        "Vaccination": request.form.get('vaccination_status')
+                    },
+                    "Lambing": {
+                        "Status": request.form.get('pregnancy_status'),
+                        "Due Date": request.form.get('due_date'),
+                        "Number of Lambs": request.form.get('number_of_lambs'),
+                        "Lambing Ease": request.form.get('lambing_ease'),
+                        "Notes": request.form.get('lambing_notes')
+                    },
+                    "Foot Health": {
+                        "Condition": request.form.get('foot_condition'),
+                        "Last Check": request.form.get('last_foot_check'),
+                        "Notes": request.form.get('foot_notes')
+                    },
+                    "Behavior": {
+                        "Pattern": request.form.get('behavior_pattern'),
+                        "Stress Level": request.form.get('stress_level'),
+                        "Notes": request.form.get('behavior_notes')
+                    },
+                    "Wool Quality": {
+                        "Condition": request.form.get('wool_quality'),
+                        "Texture": request.form.get('wool_texture'),
+                        "Last Shearing": request.form.get('last_shearing'),
+                        "Next Shearing": request.form.get('next_shearing')
+                    }
+                }
 
-            # Update record
+        elif record.animal.species == 'Cattle':
+            if request.method == 'GET':
+                # Structure data for cattle edit form
+                data = {
+                    'vital_signs': {
+                        'temperature': description.get('Vital Signs', {}).get('Temperature', ''),
+                        'heart_rate': description.get('Vital Signs', {}).get('Heart Rate', ''),
+                        'respiratory_rate': description.get('Vital Signs', {}).get('Respiratory Rate', ''),
+                        'weight': description.get('Vital Signs', {}).get('Weight', ''),
+                        'body_condition_score': description.get('Vital Signs', {}).get('Body Condition Score', '')
+                    },
+                    'vaccination_records': {
+                        'vaccines': [
+                            {
+                                'type': vaccine.get('Type', ''),
+                                'date_given': vaccine.get('Date Given', ''),
+                                'next_due': vaccine.get('Next Due', '')
+                            }
+                            for vaccine in description.get('Vaccination Records', {}).get('Vaccines', [])
+                        ]
+                    },
+                    'reproductive_health': {
+                        'status': description.get('Reproductive Health', {}).get('Status', ''),
+                        'last_calving_date': description.get('Reproductive Health', {}).get('Last Calving Date', ''),
+                        'notes': description.get('Reproductive Health', {}).get('Notes', '')
+                    },
+                    'milk_production': {
+                        'daily_volume': description.get('Milk Production', {}).get('Daily Volume', ''),
+                        'quality_grade': description.get('Milk Production', {}).get('Quality Grade', ''),
+                        'fat_content': description.get('Milk Production', {}).get('Fat Content', '')
+                    },
+                    'treatment': {
+                        'type': description.get('Treatment', {}).get('Type', ''),
+                        'veterinarian': description.get('Treatment', {}).get('Veterinarian', ''),
+                        'details': description.get('Treatment', {}).get('Details', '')
+                    }
+                }
+
+                # Ensure at least one vaccination record exists
+                if not data['vaccination_records']['vaccines']:
+                    data['vaccination_records']['vaccines'] = [{
+                        'type': '',
+                        'date_given': '',
+                        'next_due': ''
+                    }]
+                template = 'health_records/cattle/edit_cattle.html'
+
+            elif request.method == 'POST':
+                # Process cattle form submission
+                description = {
+                    "Vital Signs": {
+                        "Temperature": request.form.get('temperature'),
+                        "Heart Rate": request.form.get('heart_rate'),
+                        "Respiratory Rate": request.form.get('respiratory_rate'),
+                        "Weight": request.form.get('weight'),
+                        "Body Condition Score": request.form.get('body_condition_score')
+                    },
+                    "Vaccination Records": {
+                        "Vaccines": [
+                            {
+                                "Type": vtype,
+                                "Date Given": vdate,
+                                "Next Due": ndate
+                            }
+                            for vtype, vdate, ndate in zip(
+                                request.form.getlist('vaccine_type[]'),
+                                request.form.getlist('vaccine_date[]'),
+                                request.form.getlist('vaccine_next_due[]')
+                            ) if vtype and vdate
+                        ]
+                    },
+                    "Reproductive Health": {
+                        "Status": request.form.get('reproductive_status'),
+                        "Last Calving Date": request.form.get('last_calving_date'),
+                        "Notes": request.form.get('calving_notes')
+                    },
+                    "Milk Production": {
+                        "Daily Volume": request.form.get('milk_production'),
+                        "Quality Grade": request.form.get('milk_quality'),
+                        "Fat Content": request.form.get('fat_content')
+                    },
+                    "Treatment": {
+                        "Type": request.form.get('treatment_type'),
+                        "Veterinarian": request.form.get('veterinarian'),
+                        "Details": request.form.get('treatment_details')
+                    }
+                }
+                
+        else:
+            flash('Unsupported animal type', 'warning')
+            return redirect(url_for('health_records.index'))
+
+        if request.method == 'POST':
+            # Common POST processing for both species
             record.description = json.dumps(description, indent=2)
-            
-            # If there's a cost associated with treatment
-            if request.form.get('treatment_cost'):
-                try:
-                    record.cost = float(request.form.get('treatment_cost'))
-                except ValueError:
-                    record.cost = None
-
-            # Update next due date if provided
-            if request.form.get('next_due_date'):
-                try:
-                    record.next_due_date = datetime.strptime(
-                        request.form.get('next_due_date'), '%Y-%m-%d'
-                    ).date()
-                except ValueError:
-                    record.next_due_date = None
-            
             db.session.commit()
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -874,23 +951,20 @@ def edit(id):
             
             flash('Health record updated successfully!', 'success')
             return redirect(url_for('health_records.view', id=record.id))
-            
-        except ValueError as ve:
-            # Handle validation errors
-            db.session.rollback()
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'success': False, 'message': str(ve)}), 400
-            flash(str(ve), 'danger')
-            return redirect(url_for('health_records.edit', id=record.id))
-            
-        except Exception as e:
-            # Handle other errors
-            db.session.rollback()
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'success': False, 'message': str(e)}), 400
-            
-            flash(f'Error updating health record: {str(e)}', 'danger')
-            return redirect(url_for('health_records.edit', id=record.id))
+        else:
+            # Return the appropriate template for GET requests
+            return render_template(template,
+                                record=record,
+                                data=data,
+                                today=date.today())
+
+    except Exception as e:
+        db.session.rollback()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': str(e)}), 400
+        
+        flash(f'Error updating health record: {str(e)}', 'danger')
+        return redirect(url_for('health_records.edit', id=record.id))
         
 @bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
