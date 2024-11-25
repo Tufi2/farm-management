@@ -329,6 +329,11 @@ def add_cattle():
     return render_template('health_records/cattle/add_cattle.html',
                          today=date.today())
     
+   
+
+
+
+    
 
 
 @bp.route('/goat/add', methods=['GET', 'POST'])
@@ -625,6 +630,11 @@ def view(id):
         print(f"Error processing record: {str(e)}")  # For debugging
         flash(f"Error loading health record: {str(e)}", 'danger')
         return redirect(url_for('health_records.index'))
+    
+    
+    
+    
+    
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -749,7 +759,6 @@ def edit(id):
                     }
                 }
 
-                # Ensure at least one vaccination record exists
                 if not data['vaccination_records']['vaccines']:
                     data['vaccination_records']['vaccines'] = [{
                         'type': '',
@@ -759,46 +768,75 @@ def edit(id):
                 template = 'health_records/cattle/edit_cattle.html'
 
             elif request.method == 'POST':
-                # Process cattle form submission
-                description = {
-                    "Vital Signs": {
-                        "Temperature": request.form.get('temperature'),
-                        "Heart Rate": request.form.get('heart_rate'),
-                        "Respiratory Rate": request.form.get('respiratory_rate'),
-                        "Weight": request.form.get('weight'),
-                        "Body Condition Score": request.form.get('body_condition_score')
-                    },
-                    "Vaccination Records": {
-                        "Vaccines": [
-                            {
-                                "Type": vtype,
-                                "Date Given": vdate,
-                                "Next Due": ndate
-                            }
-                            for vtype, vdate, ndate in zip(
-                                request.form.getlist('vaccine_type[]'),
-                                request.form.getlist('vaccine_date[]'),
-                                request.form.getlist('vaccine_next_due[]')
-                            ) if vtype and vdate
-                        ]
-                    },
-                    "Reproductive Health": {
-                        "Status": request.form.get('reproductive_status'),
-                        "Last Calving Date": request.form.get('last_calving_date'),
-                        "Notes": request.form.get('calving_notes')
-                    },
-                    "Milk Production": {
-                        "Daily Volume": request.form.get('milk_production'),
-                        "Quality Grade": request.form.get('milk_quality'),
-                        "Fat Content": request.form.get('fat_content')
-                    },
-                    "Treatment": {
-                        "Type": request.form.get('treatment_type'),
-                        "Veterinarian": request.form.get('veterinarian'),
-                        "Details": request.form.get('treatment_details')
+                try:
+                    # Print form data for debugging
+                    print("Form Data:", request.form)
+                    print("Vaccine Types:", request.form.getlist('vaccine_type[]'))
+                    print("Vaccine Dates:", request.form.getlist('vaccine_date[]'))
+                    print("Vaccine Next Due:", request.form.getlist('vaccine_next_due[]'))
+
+                    # Process cattle form submission
+                    description = {
+                        "Vital Signs": {
+                            "Temperature": request.form.get('temperature'),
+                            "Heart Rate": request.form.get('heart_rate'),
+                            "Respiratory Rate": request.form.get('respiratory_rate'),
+                            "Weight": request.form.get('weight'),
+                            "Body Condition Score": request.form.get('body_condition_score')
+                        },
+                        "Vaccination Records": {
+                            "Vaccines": []
+                        },
+                        "Reproductive Health": {
+                            "Status": request.form.get('reproductive_status'),
+                            "Last Calving Date": request.form.get('last_calving_date'),
+                            "Notes": request.form.get('calving_notes')
+                        },
+                        "Milk Production": {
+                            "Daily Volume": request.form.get('milk_production'),
+                            "Quality Grade": request.form.get('milk_quality'),
+                            "Fat Content": request.form.get('fat_content')
+                        },
+                        "Treatment": {
+                            "Type": request.form.get('treatment_type'),
+                            "Veterinarian": request.form.get('veterinarian'),
+                            "Details": request.form.get('treatment_details')
+                        }
                     }
-                }
-                
+
+                    # Process vaccination records
+                    vaccine_types = request.form.getlist('vaccine_type[]')
+                    vaccine_dates = request.form.getlist('vaccine_date[]')
+                    vaccine_next_dues = request.form.getlist('vaccine_next_due[]')
+
+                    for i in range(len(vaccine_types)):
+                        if vaccine_types[i]:  # Only add if type is provided
+                            vaccine = {
+                                "Type": vaccine_types[i],
+                                "Date Given": vaccine_dates[i] if i < len(vaccine_dates) else '',
+                                "Next Due": vaccine_next_dues[i] if i < len(vaccine_next_dues) else ''
+                            }
+                            description["Vaccination Records"]["Vaccines"].append(vaccine)
+
+                    # Update the record
+                    record.description = json.dumps(description, indent=2)
+                    db.session.commit()
+
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return jsonify({
+                            'success': True,
+                            'message': 'Health record updated successfully',
+                            'redirectUrl': url_for('health_records.view', id=record.id)
+                        })
+
+                    flash('Health record updated successfully!', 'success')
+                    return redirect(url_for('health_records.view', id=record.id))
+
+                except Exception as e:
+                    print(f"Error processing form: {str(e)}")
+                    db.session.rollback()
+                    raise
+        
         else:
             flash('Unsupported animal type', 'warning')
             return redirect(url_for('health_records.index'))
@@ -825,12 +863,24 @@ def edit(id):
                                 today=date.today())
 
     except Exception as e:
+        print(f"Outer error: {str(e)}")  # Debug print
         db.session.rollback()
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'success': False, 'message': str(e)}), 400
+            return jsonify({
+                'success': False,
+                'message': f'Error processing record: {str(e)}'
+            }), 400
         
         flash(f'Error updating health record: {str(e)}', 'danger')
         return redirect(url_for('health_records.edit', id=record.id))
+    
+
+    
+    
+    
+    
+    
+    
         
 @bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
