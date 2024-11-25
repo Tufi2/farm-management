@@ -856,11 +856,7 @@ def edit(id):
             flash('Health record updated successfully!', 'success')
             return redirect(url_for('health_records.view', id=record.id))
         else:
-            # Return the appropriate template for GET requests
-            return render_template(template,
-                                record=record,
-                                data=data,
-                                today=date.today())
+            # Ret
 
  
     
