@@ -862,17 +862,7 @@ def edit(id):
                                 data=data,
                                 today=date.today())
 
-    except Exception as e:
-        print(f"Outer error: {str(e)}")  # Debug print
-        db.session.rollback()
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({
-                'success': False,
-                'message': f'Error processing record: {str(e)}'
-            }), 400
-        
-        flash(f'Error updating health record: {str(e)}', 'danger')
-        return redirect(url_for('health_records.edit', id=record.id))
+ 
     
 
     
