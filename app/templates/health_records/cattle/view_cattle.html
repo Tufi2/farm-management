@@ -1,38 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Health Record Details{% endblock %}
+{% block title %}Cattle Health Record Details{% endblock %}
 
 {% block content %}
-<div class="container mb-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Health Record Details</h1>
-        <div class="btn-group">
-            <div class="dropdown d-inline-block me-2">
+<div class="container">
+    <h1 class="mb-4">Health Record Details
+        <div class="float-end">
+            <div class="btn-group">
                 <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     <i class="fas fa-download me-1"></i>Download
                 </button>
                 <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{{ url_for('health_records.download', id=record.id, format='pdf') }}">
-                            <i class="fas fa-file-pdf me-2 text-danger"></i>Download as PDF
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{{ url_for('health_records.download', id=record.id, format='csv') }}">
-                            <i class="fas fa-file-csv me-2 text-success"></i>Download as CSV
-                        </a>
-                    </li>
+                    <li><a class="dropdown-item" href="{{ url_for('health_records.download', id=record.id, format='pdf') }}">PDF</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('health_records.download', id=record.id, format='csv') }}">CSV</a></li>
                 </ul>
             </div>
-            <a href="{{ url_for('health_records.edit', id=record.id) }}" class="btn btn-warning me-2">
+            <a href="{{ url_for('health_records.edit_cattle', id=record.id) }}" class="btn btn-warning">
                 <i class="fas fa-edit me-1"></i>Edit
             </a>
-            <button onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')" class="btn btn-danger">
+            <button onclick="confirmDelete({{ record.id }})" class="btn btn-danger">
                 <i class="fas fa-trash me-1"></i>Delete
             </button>
         </div>
-    </div>
+    </h1>
 
     <!-- Basic Information -->
     <div class="card mb-3">

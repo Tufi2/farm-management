@@ -329,7 +329,136 @@ def add_cattle():
     return render_template('health_records/cattle/add_cattle.html',
                          today=date.today())
     
-   
+@bp.route('/cattle/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_cattle(id):
+    """Edit a cattle health record"""
+    record = HealthRecord.query.get_or_404(id)
+    
+    if record.animal.species != 'Cattle':
+        flash('Invalid animal type', 'error')
+        return redirect(url_for('health_records.index'))
+    
+    if request.method == 'GET':
+        try:
+            description = json.loads(record.description) if record.description else {}
+            
+            # Structure data to match template expectations
+            data = {
+                'vital_signs': {
+                    'temperature': description.get('Vital Signs', {}).get('Temperature', ''),
+                    'heart_rate': description.get('Vital Signs', {}).get('Heart Rate', ''),
+                    'respiratory_rate': description.get('Vital Signs', {}).get('Respiratory Rate', ''),
+                    'weight': description.get('Vital Signs', {}).get('Weight', ''),
+                    'body_condition_score': description.get('Vital Signs', {}).get('Body Condition Score', '')
+                },
+                'vaccination_records': {
+                    'vaccines': [
+                        {
+                            'type': vaccine.get('Type', ''),
+                            'date_given': vaccine.get('Date Given', ''),
+                            'next_due': vaccine.get('Next Due', '')
+                        }
+                        for vaccine in description.get('Vaccination Records', {}).get('Vaccines', [])
+                    ]
+                },
+                'reproductive_health': {
+                    'status': description.get('Reproductive Health', {}).get('Status', ''),
+                    'last_calving_date': description.get('Reproductive Health', {}).get('Last Calving Date', ''),
+                    'notes': description.get('Reproductive Health', {}).get('Notes', '')
+                },
+                'milk_production': {
+                    'daily_volume': description.get('Milk Production', {}).get('Daily Volume', ''),
+                    'quality_grade': description.get('Milk Production', {}).get('Quality Grade', ''),
+                    'fat_content': description.get('Milk Production', {}).get('Fat Content', '')
+                },
+                'treatment': {
+                    'type': description.get('Treatment', {}).get('Type', ''),
+                    'veterinarian': description.get('Treatment', {}).get('Veterinarian', ''),
+                    'details': description.get('Treatment', {}).get('Details', '')
+                }
+            }
+
+            # Ensure at least one vaccination record exists for the form
+            if not data['vaccination_records']['vaccines']:
+                data['vaccination_records']['vaccines'] = [{
+                    'type': '',
+                    'date_given': '',
+                    'next_due': ''
+                }]
+            
+            return render_template('health_records/cattle/edit_cattle.html',
+                               record=record,
+                               data=data,
+                               today=date.today())
+                               
+        except Exception as e:
+            flash(f'Error loading record: {str(e)}', 'danger')
+            return redirect(url_for('health_records.index'))
+    
+    if request.method == 'POST':
+        try:
+            # Structure the updated data
+            description = {
+                "Vital Signs": {
+                    "Temperature": request.form.get('temperature'),
+                    "Heart Rate": request.form.get('heart_rate'),
+                    "Respiratory Rate": request.form.get('respiratory_rate'),
+                    "Weight": request.form.get('weight'),
+                    "Body Condition Score": request.form.get('body_condition_score')
+                },
+                "Vaccination Records": {
+                    "Vaccines": [
+                        {
+                            "Type": vtype,
+                            "Date Given": vdate,
+                            "Next Due": ndate
+                        }
+                        for vtype, vdate, ndate in zip(
+                            request.form.getlist('vaccine_type[]'),
+                            request.form.getlist('vaccine_date[]'),
+                            request.form.getlist('vaccine_next_due[]')
+                        ) if vtype and vdate
+                    ]
+                },
+                "Reproductive Health": {
+                    "Status": request.form.get('reproductive_status'),
+                    "Last Calving Date": request.form.get('last_calving_date'),
+                    "Notes": request.form.get('calving_notes')
+                },
+                "Milk Production": {
+                    "Daily Volume": request.form.get('milk_production'),
+                    "Quality Grade": request.form.get('milk_quality'),
+                    "Fat Content": request.form.get('fat_content')
+                },
+                "Treatment": {
+                    "Type": request.form.get('treatment_type'),
+                    "Veterinarian": request.form.get('veterinarian'),
+                    "Details": request.form.get('treatment_details')
+                }
+            }
+
+            # Update the record
+            record.description = json.dumps(description, indent=2)
+            db.session.commit()
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'success': True,
+                    'message': 'Health record updated successfully',
+                    'redirectUrl': url_for('health_records.view', id=record.id)  # Updated the redirect URL
+                })
+            
+            flash('Health record updated successfully!', 'success')
+            return redirect(url_for('health_records.view', id=record.id))  # Updated the redirect URL
+            
+        except Exception as e:
+            db.session.rollback()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': str(e)}), 400
+            
+            flash(f'Error updating health record: {str(e)}', 'danger')
+            return redirect(url_for('health_records.edit_cattle', id=record.id))   
 
 
 
@@ -856,9 +985,23 @@ def edit(id):
             flash('Health record updated successfully!', 'success')
             return redirect(url_for('health_records.view', id=record.id))
         else:
-            # Ret
+            # Return the appropriate template for GET requests
+            return render_template(template,
+                                record=record,
+                                data=data,
+                                today=date.today())
 
- 
+    except Exception as e:
+        print(f"Outer error: {str(e)}")  # Debug print
+        db.session.rollback()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': False,
+                'message': f'Error processing record: {str(e)}'
+            }), 400
+        
+        flash(f'Error updating health record: {str(e)}', 'danger')
+        return redirect(url_for('health_records.edit', id=record.id))
     
 
     
