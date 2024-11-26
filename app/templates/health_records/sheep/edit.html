@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Health Record{% endblock %}
+{% block title %}Edit Sheep Health Record{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card">
-                <div class="card-header {% if animal_type == 'Sheep' %}bg-primary
-                     {% elif animal_type == 'Cattle' %}bg-success
-                     {% elif animal_type == 'Goat' %}bg-warning
-                     {% elif animal_type == 'Chicken' %}bg-info{% endif %} text-white">
-                    <h2 class="h5 mb-0">Edit {{ animal_type }} Health Record</h2>
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Edit Sheep Health Record</h2>
+                        <span class="badge bg-light text-dark">Tag: {{ record.animal.tag_number }}</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <form method="POST" id="healthRecordForm">
@@ -203,17 +203,7 @@
                             </div>
                         </div>
 
-                        <!-- Toast Container -->
-                                                <!-- Toast Container -->
-                        <div class="toast-container position-fixed bottom-0 end-0 p-3">
-                            <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                                <div class="toast-header">
-                                    <strong class="me-auto" id="toastTitle"></strong>
-                                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                                </div>
-                                <div class="toast-body" id="toastMessage"></div>
-                            </div>
-                        </div>
+                       
 
                         <!-- Additional Notes -->
                         <div class="row mb-4">
@@ -226,13 +216,12 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn {% if animal_type == 'Sheep' %}btn-primary
-                                                        {% elif animal_type == 'Cattle' %}btn-success
-                                                        {% elif animal_type == 'Goat' %}btn-warning
-                                                        {% elif animal_type == 'Chicken' %}btn-info{% endif %}">
-                                Save Changes
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ url_for('health_records.view', id=record.id) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Changes
                             </button>
                         </div>
                     </form>
@@ -242,80 +231,194 @@
     </div>
 </div>
 
+<!-- Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="recordToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i id="toastIcon" class="fas me-2"></i>
+            <strong class="me-auto" id="toastTitle"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.h6 {
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.mb-4 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1.5rem;
+}
+
+.mb-4:last-child {
+    border-bottom: none;
+}
+
+.badge {
+    padding: 0.5em 1em;
+    font-size: 0.875em;
+}
+
+.toast-container {
+    z-index: 1100;
+}
+
+.toast {
+    background-color: white;
+    min-width: 300px;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn i {
+    font-size: 0.875rem;
+}
+
+/* Form field enhancements */
+.form-control:focus, 
+.form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+}
+
+/* Toast animations */
+@keyframes slideIn {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.toast.show {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Required field indicator */
+.form-label.required:after {
+    content: "*";
+    color: #dc3545;
+    margin-left: 4px;
+}
+
+/* Section styling */
+.section-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+/* Card header enhancement */
+.card-header {
+    padding: 1rem;
+}
+
+/* Button group spacing */
+.gap-2 {
+    gap: 0.75rem !important;
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('sheepHealthForm');
     
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        try {
-            const formData = new FormData(this);
-            const response = await fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            });
+    // Remove required attributes
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+        field.removeAttribute('required');
+    });
+    
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            const result = await response.json();
+            // Disable submit button to prevent double submission
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
             
-            if (result.success) {
-                showToast('Success', result.message);
-                setTimeout(() => {
-                    window.location.href = result.redirectUrl;
-                }, 1500);
-            } else {
-                throw new Error(result.message || 'Error updating record');
+            try {
+                const formData = new FormData(this);
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Success', result.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = result.redirectUrl;
+                    }, 1500);
+                } else {
+                    throw new Error(result.message || 'Error saving record');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error', error.message || 'An error occurred while saving the record', 'error');
+                submitButton.disabled = false;
             }
-        } catch (error) {
-            showToast('Error', error.message);
-        }
+        });
+    }
+    
+    // Initialize tooltips
+    const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltips.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 
 function showToast(title, message, type = 'success') {
     const toast = document.getElementById('recordToast');
-    const toastInstance = new bootstrap.Toast(toast);
-    const toastTitle = document.getElementById('toastTitle');
-    const toastMessage = document.getElementById('toastMessage');
-    
-    toastTitle.textContent = title;
-    toastMessage.textContent = message;
-    toastTitle.className = type === 'success' ? 'text-success' : 'text-danger';
-    
-    toastInstance.show();
+    if (toast) {
+        const toastInstance = new bootstrap.Toast(toast);
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        
+        if (toastTitle) toastTitle.textContent = title;
+        if (toastMessage) toastMessage.textContent = message;
+        if (toastIcon) {
+            toastIcon.className = type === 'success' ? 
+                'fas fa-check-circle text-success me-2' : 
+                'fas fa-exclamation-circle text-danger me-2';
+        }
+        
+        toastInstance.show();
+    }
 }
 </script>
-{% endblock %}
-
-{% block styles %}
-<style>
-    .card {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    .form-label {
-        font-weight: 500;
-    }
-    .h6 {
-        color: #6c757d;
-        font-weight: 600;
-    }
-    .mb-4 {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 1.5rem;
-    }
-    .mb-4:last-child {
-        border-bottom: none;
-    }
-    .toast {
-        opacity: 0.9;
-    }
-    .toast-container {
-        z-index: 1050;
-    }
-</style>
-{% endblock %}
 {% endblock %}
