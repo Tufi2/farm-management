@@ -245,14 +245,10 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('healthRecordForm');
+    const form = document.getElementById('sheepHealthForm');
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
-        // Disable submit button to prevent double submission
-        const submitButton = this.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
         
         try {
             const formData = new FormData(this);
@@ -266,31 +262,31 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const result = await response.json();
             
-            if (response.ok) {
-                showToast('Success', result.message, 'success');
+            if (result.success) {
+                showToast('Success', result.message);
                 setTimeout(() => {
                     window.location.href = result.redirectUrl;
                 }, 1500);
             } else {
-                throw new Error(result.message || 'Failed to update record');
+                throw new Error(result.message || 'Error updating record');
             }
         } catch (error) {
-            showToast('Error', error.message, 'error');
-            submitButton.disabled = false;
+            showToast('Error', error.message);
         }
     });
 });
 
-function showToast(message, type = 'success') {
-    const toast = new bootstrap.Toast(document.getElementById('toast'));
-    const toastBody = document.getElementById('toastMessage');
-    const toastHeader = document.getElementById('toastTitle');
+function showToast(title, message, type = 'success') {
+    const toast = document.getElementById('recordToast');
+    const toastInstance = new bootstrap.Toast(toast);
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
     
-    toastHeader.className = type === 'success' ? 'text-success' : 'text-danger';
-    toastHeader.textContent = type === 'success' ? 'Success' : 'Error';
-    toastBody.textContent = message;
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+    toastTitle.className = type === 'success' ? 'text-success' : 'text-danger';
     
-    toast.show();
+    toastInstance.show();
 }
 </script>
 {% endblock %}

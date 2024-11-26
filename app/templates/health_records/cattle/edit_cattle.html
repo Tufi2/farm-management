@@ -4,178 +4,209 @@
 
 {% block content %}
 <div class="container">
-    <form method="POST" id="cattleHealthForm" class="needs-validation" novalidate>
-        <!-- Add Cattle Health Record Header -->
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Cattle Health Record</h4>
-            </div>
-            <div class="card-body">
-                <!-- Basic Information -->
-                <div class="mb-4">
-                    <h5 class="text-muted mb-3">Basic Information</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="tag_number" class="form-label">Tag Number *</label>
-                            <select class="form-select" id="tag_number" name="tag_number" required disabled>
-                                <option value="{{ record.animal.tag_number }}" selected>{{ record.animal.tag_number }}</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="record_date" class="form-label">Record Date</label>
-                            <input type="date" class="form-control" id="record_date" name="record_date" 
-                                   value="{{ record.date.strftime('%Y-%m-%d') }}" required>
-                        </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Edit Cattle Health Record</h2>
+                        <span class="badge bg-light text-dark">Tag: {{ record.animal.tag_number }}</span>
                     </div>
                 </div>
+                <div class="card-body">
+                    <form method="POST" id="cattleHealthForm" class="needs-validation" novalidate>
+                        <!-- Record Information -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Record Information</h3>
+                            <div class="col-md-6">
+                                <label for="record_date" class="form-label">Record Date</label>
+                                <input type="date" class="form-control" id="record_date" name="record_date" 
+                                       value="{{ record.date.strftime('%Y-%m-%d') }}">
+                            </div>
+                        </div>
 
-                <!-- Vital Signs -->
-                <div class="mb-4">
-                    <h5 class="text-muted mb-3">Vital Signs</h5>
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <label for="temperature" class="form-label">Temperature (°C)</label>
-                            <input type="number" step="0.1" class="form-control" id="temperature" name="temperature"
-                                   value="{{ data.vital_signs.temperature }}">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="heart_rate" class="form-label">Heart Rate (BPM)</label>
-                            <input type="number" class="form-control" id="heart_rate" name="heart_rate"
-                                   value="{{ data.vital_signs.heart_rate }}">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="respiratory_rate" class="form-label">Respiratory Rate</label>
-                            <input type="number" class="form-control" id="respiratory_rate" name="respiratory_rate"
-                                   value="{{ data.vital_signs.respiratory_rate }}">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="weight" class="form-label">Weight (kg)</label>
-                            <input type="number" step="0.1" class="form-control" id="weight" name="weight"
-                                   value="{{ data.vital_signs.weight }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="body_condition_score" class="form-label">Body Condition Score</label>
-                            <select class="form-select" id="body_condition_score" name="body_condition_score">
-                                <option value="">Select Score</option>
-                                <option value="1" {% if data.vital_signs.body_condition_score == "1" %}selected{% endif %}>1 - Very Poor</option>
-                                <option value="2" {% if data.vital_signs.body_condition_score == "2" %}selected{% endif %}>2 - Poor</option>
-                                <option value="3" {% if data.vital_signs.body_condition_score == "3" %}selected{% endif %}>3 - Fair</option>
-                                <option value="4" {% if data.vital_signs.body_condition_score == "4" %}selected{% endif %}>4 - Good</option>
-                                <option value="5" {% if data.vital_signs.body_condition_score == "5" %}selected{% endif %}>5 - Excellent</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Vaccination Records -->
-                <div class="mb-4">
-                    <h5 class="text-muted mb-3">Vaccination Records</h5>
-                    <div id="vaccination-container">
-                        {% for vaccine in data.vaccination_records.vaccines %}
-                        <div class="row mb-2 vaccination-record">
-                            <div class="col-md-4">
-                                <select class="form-select" name="vaccine_type[]">
-                                    <option value="">Select Vaccine</option>
-                                    <option value="FMD" {% if vaccine.type == "FMD" %}selected{% endif %}>Foot-and-mouth Disease</option>
-                                    <option value="BTB" {% if vaccine.type == "BTB" %}selected{% endif %}>Bovine Tuberculosis</option>
-                                    <option value="BVD" {% if vaccine.type == "BVD" %}selected{% endif %}>Bovine Viral Diarrhea</option>
-                                    <option value="Brucellosis" {% if vaccine.type == "Brucellosis" %}selected{% endif %}>Brucellosis</option>
-                                    <option value="Anthrax" {% if vaccine.type == "Anthrax" %}selected{% endif %}>Anthrax</option>
+                        <!-- Vital Signs -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Vital Signs</h3>
+                            <div class="col-md-3">
+                                <label for="temperature" class="form-label">Temperature (°C)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.1" class="form-control" id="temperature" name="temperature"
+                                           value="{{ data.vital_signs.temperature }}">
+                                    <span class="input-group-text">°C</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="heart_rate" class="form-label">Heart Rate</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="heart_rate" name="heart_rate"
+                                           value="{{ data.vital_signs.heart_rate }}">
+                                    <span class="input-group-text">BPM</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="respiratory_rate" class="form-label">Respiratory Rate</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="respiratory_rate" name="respiratory_rate"
+                                           value="{{ data.vital_signs.respiratory_rate }}">
+                                    <span class="input-group-text">breaths/min</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="weight" class="form-label">Weight</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.1" class="form-control" id="weight" name="weight"
+                                           value="{{ data.vital_signs.weight }}">
+                                    <span class="input-group-text">kg</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <label for="body_condition_score" class="form-label">Body Condition Score</label>
+                                <select class="form-select" id="body_condition_score" name="body_condition_score">
+                                    <option value="">Select Score</option>
+                                    {% for score in range(1, 6) %}
+                                    <option value="{{ score }}" 
+                                            {% if data.vital_signs.body_condition_score == score|string %}selected{% endif %}>
+                                        {{ score }} - {{ ["Very Poor", "Poor", "Fair", "Good", "Excellent"][score-1] }}
+                                    </option>
+                                    {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <input type="date" class="form-control" name="vaccine_date[]" 
-                                       value="{{ vaccine.date_given }}">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="date" class="form-control" name="vaccine_next_due[]" 
-                                       value="{{ vaccine.next_due }}">
-                            </div>
-                            <div class="col-md-2">
-                                {% if loop.index == 1 %}
-                                <button type="button" class="btn btn-outline-success btn-sm add-vaccine">
-                                    <i class="fas fa-plus"></i>
+                        </div>
+
+                        <!-- Vaccination Records -->
+                        <div class="row mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h3 class="h6 text-muted mb-0">Vaccination Records</h3>
+                                <button type="button" class="btn btn-outline-success btn-sm" id="addVaccineBtn">
+                                    <i class="fas fa-plus me-1"></i>Add Vaccine
                                 </button>
-                                {% else %}
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-vaccine">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                {% endif %}
+                            </div>
+                            <div id="vaccination-container">
+                                {% for vaccine in data.vaccination_records.vaccines %}
+                                <div class="vaccination-record bg-light p-3 rounded mb-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Vaccine Type</label>
+                                            <select class="form-select" name="vaccine_type[]">
+                                                <option value="">Select Vaccine</option>
+                                                {% for type in ["FMD", "BTB", "BVD", "Brucellosis", "Anthrax"] %}
+                                                <option value="{{ type }}" {% if vaccine.type == type %}selected{% endif %}>
+                                                    {{ {
+                                                        'FMD': 'Foot-and-mouth Disease',
+                                                        'BTB': 'Bovine Tuberculosis',
+                                                        'BVD': 'Bovine Viral Diarrhea',
+                                                        'Brucellosis': 'Brucellosis',
+                                                        'Anthrax': 'Anthrax'
+                                                    }[type] }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Date Given</label>
+                                            <input type="date" class="form-control" name="vaccine_date[]" 
+                                                   value="{{ vaccine.date_given }}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Next Due Date</label>
+                                            <input type="date" class="form-control" name="vaccine_next_due[]" 
+                                                   value="{{ vaccine.next_due }}">
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            {% if not loop.first %}
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-vaccine">
+                                                <i class="fas fa-trash me-1"></i>Remove
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
 
-                <!-- Reproductive Health -->
-                <div class="mb-4">
-                    <h5 class="text-muted mb-3">Reproductive Health</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="reproductive_status" class="form-label">Status</label>
-                            <select class="form-select" id="reproductive_status" name="reproductive_status">
-                                <option value="">Select Status</option>
-                                <option value="Open" {% if data.reproductive_health.status == "Open" %}selected{% endif %}>Open</option>
-                                <option value="Bred" {% if data.reproductive_health.status == "Bred" %}selected{% endif %}>Bred</option>
-                                <option value="Pregnant" {% if data.reproductive_health.status == "Pregnant" %}selected{% endif %}>Pregnant</option>
-                                <option value="Fresh" {% if data.reproductive_health.status == "Fresh" %}selected{% endif %}>Fresh</option>
-                            </select>
+                        <!-- Reproductive Health -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Reproductive Health</h3>
+                            <div class="col-md-6">
+                                <label for="reproductive_status" class="form-label">Status</label>
+                                <select class="form-select" id="reproductive_status" name="reproductive_status">
+                                    <option value="">Select Status</option>
+                                    {% for status in ["Open", "Bred", "Pregnant", "Fresh"] %}
+                                    <option value="{{ status }}" 
+                                            {% if data.reproductive_health.status == status %}selected{% endif %}>
+                                        {{ status }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_calving_date" class="form-label">Last Calving Date</label>
+                                <input type="date" class="form-control" id="last_calving_date" name="last_calving_date"
+                                       value="{{ data.reproductive_health.last_calving_date }}">
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label for="calving_notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="calving_notes" name="calving_notes" rows="2">{{ data.reproductive_health.notes }}</textarea>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="last_calving_date" class="form-label">Last Calving Date</label>
-                            <input type="date" class="form-control" id="last_calving_date" name="last_calving_date"
-                                   value="{{ data.reproductive_health.last_calving_date }}">
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label for="calving_notes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="calving_notes" name="calving_notes" rows="2">{{ data.reproductive_health.notes }}</textarea>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Milk Production -->
-                <div class="mb-4">
-                    <h5 class="text-muted mb-3">Milk Production</h5>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="milk_production" class="form-label">Daily Production (L)</label>
-                            <input type="number" step="0.1" class="form-control" id="milk_production" 
-                                   name="milk_production" value="{{ data.milk_production.daily_volume }}">
+                        <!-- Milk Production -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Milk Production</h3>
+                            <div class="col-md-4">
+                                <label for="milk_production" class="form-label">Daily Production</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.1" class="form-control" id="milk_production" 
+                                           name="milk_production" value="{{ data.milk_production.daily_volume }}">
+                                    <span class="input-group-text">L</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="milk_quality" class="form-label">Quality Grade</label>
+                                <select class="form-select" id="milk_quality" name="milk_quality">
+                                    <option value="">Select Grade</option>
+                                    {% for grade in ["Premium", "Grade A", "Grade B"] %}
+                                    <option value="{{ grade }}" 
+                                            {% if data.milk_production.quality_grade == grade %}selected{% endif %}>
+                                        {{ grade }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="fat_content" class="form-label">Fat Content</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.1" class="form-control" id="fat_content" 
+                                           name="fat_content" value="{{ data.milk_production.fat_content }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="milk_quality" class="form-label">Quality Grade</label>
-                            <select class="form-select" id="milk_quality" name="milk_quality">
-                                <option value="">Select Grade</option>
-                                <option value="Premium" {% if data.milk_production.quality_grade == "Premium" %}selected{% endif %}>Premium</option>
-                                <option value="Grade A" {% if data.milk_production.quality_grade == "Grade A" %}selected{% endif %}>Grade A</option>
-                                <option value="Grade B" {% if data.milk_production.quality_grade == "Grade B" %}selected{% endif %}>Grade B</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="fat_content" class="form-label">Fat Content (%)</label>
-                            <input type="number" step="0.1" class="form-control" id="fat_content" 
-                                   name="fat_content" value="{{ data.milk_production.fat_content }}">
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Form Actions -->
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ url_for('health_records.view', id=record.id) }}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save me-1"></i>Save Changes
-                    </button>
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('health_records.view', id=record.id) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
 
-<!-- Success/Error Toast -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+<!-- Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="recordToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
-            <strong class="me-auto" id="toastTitle">Notification</strong>
+            <i id="toastIcon" class="fas me-2"></i>
+            <strong class="me-auto" id="toastTitle"></strong>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body" id="toastMessage"></div>
@@ -183,94 +214,186 @@
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.vaccination-record {
+    transition: all 0.3s ease;
+}
+
+.vaccination-record:hover {
+    background-color: #f8f9fa;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.h6 {
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.mb-4 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1.5rem;
+}
+
+.mb-4:last-child {
+    border-bottom: none;
+}
+
+.toast-container {
+    z-index: 1100;
+}
+
+.toast {
+    background-color: white;
+    min-width: 300px;
+}
+
+.btn-success {
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.vaccination-record {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.invalid-feedback {
+    display: none;
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:invalid:focus,
+.form-control.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
-
-
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('cattleHealthForm');
-    
-    // Add Vaccine Record
-    document.querySelector('.add-vaccine').addEventListener('click', function() {
-        const container = document.getElementById('vaccination-container');
-        const newRecord = container.children[0].cloneNode(true);
-        
-        // Clear values
-        newRecord.querySelectorAll('input, select').forEach(input => input.value = '');
-        
-        // Change add button to remove button
-        const button = newRecord.querySelector('button');
-        button.className = 'btn btn-outline-danger btn-sm remove-vaccine';
-        button.innerHTML = '<i class="fas fa-minus"></i>';
-        
-        container.appendChild(newRecord);
+    const addVaccineBtn = document.getElementById('addVaccineBtn');
+    const vaccinationContainer = document.getElementById('vaccination-container');
+
+    // Remove required attribute from all fields
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+        field.removeAttribute('required');
     });
-    
+
+    // Vaccine Record Template
+    function createVaccineRecord() {
+        const template = vaccinationContainer.children[0].cloneNode(true);
+        template.querySelectorAll('input, select').forEach(input => {
+            input.value = '';
+            input.removeAttribute('required');
+        });
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-outline-danger btn-sm remove-vaccine';
+        removeBtn.innerHTML = '<i class="fas fa-trash me-1"></i>Remove';
+        
+        const btnContainer = template.querySelector('.col-md-2');
+        btnContainer.innerHTML = '';
+        btnContainer.appendChild(removeBtn);
+        
+        return template;
+    }
+
+    // Add Vaccine Record
+    if (addVaccineBtn) {
+        addVaccineBtn.addEventListener('click', function() {
+            const newRecord = createVaccineRecord();
+            vaccinationContainer.appendChild(newRecord);
+        });
+    }
+
     // Remove Vaccine Record
     document.addEventListener('click', function(e) {
         if (e.target.closest('.remove-vaccine')) {
-            e.target.closest('.vaccination-record').remove();
+            const record = e.target.closest('.vaccination-record');
+            record.style.opacity = '0';
+            record.style.transform = 'translateY(20px)';
+            setTimeout(() => record.remove(), 300);
         }
     });
-    
+
     // Form Submission
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        try {
-            const formData = new FormData(this);
-            const response = await fetch(window.location.href, {
-                method: 'POST',
-                body: formData
-            });
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            const result = await response.json();
-            
-            if (result.success) {
-                showToast('Success', result.message);
-                setTimeout(() => {
-                    window.location.href = result.redirectUrl || "{{ url_for('health_records.view', id=record.id) }}";
-                }, 1500);
-            } else {
-                showToast('Error', result.message || 'Error saving record');
+            try {
+                const formData = new FormData(this);
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Success', result.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = result.redirectUrl;
+                    }, 1500);
+                } else {
+                    throw new Error(result.message || 'Error saving record');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error', error.message || 'An error occurred while saving the record', 'error');
             }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('Error', 'An error occurred while saving the record');
-        }
-    });
+        });
+    }
 });
 
-// Toast notification helper
-function showToast(title, message) {
+function showToast(title, message, type = 'success') {
     const toast = document.getElementById('recordToast');
-    const bsToast = new bootstrap.Toast(toast);
-    document.getElementById('toastTitle').textContent = title;
-    document.getElementById('toastMessage').textContent = message;
-    bsToast.show();
+    if (toast) {
+        const toastInstance = new bootstrap.Toast(toast);
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        
+        if (toastTitle) toastTitle.textContent = title;
+        if (toastMessage) toastMessage.textContent = message;
+        if (toastIcon) {
+            toastIcon.className = type === 'success' ? 
+                'fas fa-check-circle text-success me-2' : 
+                'fas fa-exclamation-circle text-danger me-2';
+        }
+        
+        toastInstance.show();
+    }
 }
 </script>
-{% endblock %}
-
-{% block styles %}
-<style>
-    .card {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    .text-muted {
-        color: #6c757d;
-    }
-    .form-label {
-        font-weight: 500;
-    }
-    .vaccination-record {
-        padding: 10px;
-        border-radius: 4px;
-        background-color: #f8f9fa;
-        margin-bottom: 10px;
-    }
-    .toast {
-        background-color: white;
-    }
-</style>
 {% endblock %}
