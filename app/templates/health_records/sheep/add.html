@@ -319,8 +319,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const tagInput = document.getElementById('tag_number');
     const form = document.getElementById('healthRecordForm');
+    let isTagValid = false;  // Add this flag to track tag validity
     
-    // Validate tag number exists
+    // Validate tag number exists and check for duplicates
     tagInput.addEventListener('blur', async function() {
         const tagNumber = this.value.trim();
         if (tagNumber) {
@@ -328,17 +329,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(`/health-records/get-animal/${tagNumber}`);
                 const data = await response.json();
                 
-                if (response.ok && data.species === '{{ animal_type }}') {
-    tagInput.classList.remove('is-invalid');
-    tagInput.classList.add('is-valid');
-} else {
-    tagInput.classList.remove('is-valid');
-    tagInput.classList.add('is-invalid');
-    document.getElementById('tagNumberFeedback').textContent = 
-        `${tagNumber} is not a valid {{ animal_type }} tag number.`;
-}   
+                if (response.ok && data.species === 'Sheep') {
+                    if (data.hasExistingRecord) {
+                        // Tag exists but already has a record for today
+                        tagInput.classList.remove('is-valid');
+                        tagInput.classList.add('is-invalid');
+                        document.getElementById('tagNumberFeedback').textContent = 
+                            `A health record already exists for Sheep with tag number ${tagNumber} today.`;
+                        showToast('Warning', `A health record already exists for this sheep today.`, 'warning');
+                        isTagValid = false;  // Set flag to false
+                    } else {
+                        // Tag exists and no record for today
+                        tagInput.classList.remove('is-invalid');
+                        tagInput.classList.add('is-valid');
+                        isTagValid = true;  // Set flag to true
+                    }
+                } else {
+                    // Tag doesn't exist or wrong species
+                    tagInput.classList.remove('is-valid');
+                    tagInput.classList.add('is-invalid');
+                    document.getElementById('tagNumberFeedback').textContent = 
+                        `${tagNumber} is not a valid Sheep tag number.`;
+                    isTagValid = false;  // Set flag to false
+                }   
             } catch (error) {
                 console.error('Error checking tag number:', error);
+                showToast('Error', 'Error verifying tag number', 'error');
+                isTagValid = false;  // Set flag to false
             }
         }
     });
@@ -347,50 +364,75 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Disable submit button to prevent double submission
-        const submitButton = this.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        
+        // First, validate the tag number again
+        const tagNumber = tagInput.value.trim();
+        if (!tagNumber) {
+            showToast('Error', 'Tag number is required', 'error');
+            return;
+        }
+
+        // Check if tag is valid before proceeding
+        if (!isTagValid) {
+            showToast('Error', 'Please correct the tag number issues before submitting', 'error');
+            return;
+        }
+
+        // Check one more time for duplicate record
         try {
-            const formData = new FormData(this);
-            const response = await fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            
+            const response = await fetch(`/health-records/get-animal/${tagNumber}`);
             const data = await response.json();
             
-            if (response.ok) {
-                showToast(data.message, 'success');
-                // Redirect after successful save
+            if (data.hasExistingRecord) {
+                showToast('Error', 'A record already exists for this animal today', 'error');
+                return;
+            }
+
+            // If we get here, it's safe to submit
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            
+            const formData = new FormData(this);
+            const submitResponse = await fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+            
+            const result = await submitResponse.json();
+            
+            if (submitResponse.ok) {
+                showToast('Success', result.message, 'success');
                 setTimeout(() => {
                     window.location.href = "{{ url_for('health_records.index') }}";
                 }, 1500);
             } else {
-                showToast(data.message || 'Error saving record', 'error');
-                submitButton.disabled = false;
+                throw new Error(result.message || 'Error saving record');
             }
         } catch (error) {
-            showToast('Error saving record', 'error');
+            console.error('Error:', error);
+            showToast('Error', error.message || 'An error occurred while saving the record', 'error');
             submitButton.disabled = false;
         }
     });
 });
 
 // Toast notification system
-function showToast(message, type = 'success') {
+function showToast(title, message, type = 'success') {
     const toast = new bootstrap.Toast(document.getElementById('toast'));
+    const toastTitle = document.getElementById('toastTitle');
     const toastBody = document.getElementById('toastMessage');
-    const toastHeader = document.getElementById('toastTitle');
     
-    toastHeader.className = type === 'success' ? 'text-success' : 'text-danger';
-    toastHeader.textContent = type === 'success' ? 'Success' : 'Error';
+    const headerClass = type === 'success' ? 'text-success' : 
+                       type === 'warning' ? 'text-warning' : 'text-danger';
+    
+    toastTitle.className = `me-auto ${headerClass}`;
+    toastTitle.textContent = title;
     toastBody.textContent = message;
     
     toast.show();
-}
+} 
+ 
 </script>
 {% endblock %}

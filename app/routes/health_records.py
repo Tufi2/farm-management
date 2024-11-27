@@ -117,6 +117,11 @@ def add_sheep():
             sheep = Animal.query.filter_by(tag_number=tag_number, species='Sheep').first()
             
             if not sheep:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({
+                        'success': False,
+                        'message': 'Sheep not found with this tag number'
+                    }), 404
                 flash('Sheep not found with this tag number', 'danger')
                 return redirect(url_for('health_records.add_sheep'))
             
@@ -127,6 +132,11 @@ def add_sheep():
             ).first()
             
             if existing_record:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({
+                        'success': False,
+                        'message': 'A health record already exists for this sheep today'
+                    }), 400
                 flash('A health record already exists for this sheep today', 'warning')
                 return redirect(url_for('health_records.add_sheep'))
 
@@ -173,6 +183,24 @@ def add_sheep():
                 created_by_id=current_user.id,
                 created_at=datetime.utcnow()
             )
+            
+            #Double check for race conditions
+            db.session.flush()
+            duplicate_check = HealthRecord.query.filter_by(
+                animal_id=sheep.id,
+                date=date.today()
+            ).first()
+            
+            if duplicate_check:
+                db.session.rollback()
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({
+                        'success': False,
+                        'message': 'A health record already exists for this sheep today'
+                    }), 400
+                flash('A health record already exists for this sheep today', 'warning')
+                return redirect(url_for('health_records.add_sheep'))
+            
             
             db.session.add(record)
             db.session.commit()
@@ -1036,16 +1064,25 @@ def bulk_delete():
 @bp.route('/get-animal/<tag_number>')
 @login_required
 def get_animal(tag_number):
-    """Get animal details by tag number"""
+    """Get animal details by tag number and check for existing records"""
     animal = Animal.query.filter_by(tag_number=tag_number).first()
+    
     if animal:
+        # Check if a record already exists for today
+        existing_record = HealthRecord.query.filter_by(
+            animal_id=animal.id,
+            date=date.today()
+        ).first()
+        
         return jsonify({
             'id': animal.id,
             'name': animal.name,
             'species': animal.species,
-            'breed': animal.breed
+            'breed': animal.breed,
+            'hasExistingRecord': existing_record is not None
         })
     return jsonify({'error': 'Animal not found'}), 404
+
 @bp.route('/<int:id>/download/<format>')
 @login_required
 def download(id, format):
