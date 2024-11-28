@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Add Goat Health Record{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h2 class="h5 mb-0">
+                        <i class="fas fa-goat me-2"></i>Add Goat Health Record
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="goatHealthRecordForm">
+                        <!-- Identification Details -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Basic Information</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="tag_number" class="form-label">Tag Number *</label>
+                                <input type="text" class="form-control" id="tag_number" name="tag_number" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="breed" class="form-label">Breed *</label>
+                                <input type="text" class="form-control" id="breed" name="breed" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label">Gender *</label>
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Health Status -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Health Status</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="health_status" class="form-label">Current Health Status *</label>
+                                <select class="form-select" id="health_status" name="health_status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Healthy">Healthy</option>
+                                    <option value="Sick">Sick</option>
+                                    <option value="Treatment">Under Treatment</option>
+                                    <option value="Observation">Under Observation</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="weight" class="form-label">Weight (kg)</label>
+                                <input type="number" step="0.1" class="form-control" id="weight" name="weight">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="body_condition" class="form-label">Body Condition Score</label>
+                                <select class="form-select" id="body_condition" name="body_condition">
+                                    <option value="">Select Score</option>
+                                    <option value="1">1 - Emaciated</option>
+                                    <option value="2">2 - Thin</option>
+                                    <option value="3">3 - Average</option>
+                                    <option value="4">4 - Fat</option>
+                                    <option value="5">5 - Obese</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Vaccination & Deworming -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Vaccination & Deworming</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="vaccination_type" class="form-label">Vaccination Type</label>
+                                <select class="form-select" id="vaccination_type" name="vaccination_type">
+                                    <option value="">Select Type</option>
+                                    <option value="CDT">CDT (Clostridial)</option>
+                                    <option value="Rabies">Rabies</option>
+                                    <option value="FMD">Foot and Mouth Disease</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vaccination_date" class="form-label">Vaccination Date</label>
+                                <input type="date" class="form-control" id="vaccination_date" name="vaccination_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="deworming_status" class="form-label">Deworming Status</label>
+                                <select class="form-select" id="deworming_status" name="deworming_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Due">Due</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Scheduled">Scheduled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="next_deworming_date" class="form-label">Next Deworming Date</label>
+                                <input type="date" class="form-control" id="next_deworming_date" name="next_deworming_date">
+                            </div>
+                        </div>
+
+                        <!-- Medical Examination -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Medical Examination</h3>
+                            <div class="col-12 mb-3">
+                                <label for="symptoms" class="form-label">Symptoms/Observations</label>
+                                <textarea class="form-control" id="symptoms" name="symptoms" rows="3"
+                                    placeholder="Describe any symptoms or behavioral changes"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="diagnosis" class="form-label">Diagnosis & Treatment</label>
+                                <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3"
+                                    placeholder="Enter diagnosis and prescribed treatment"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="medication" class="form-label">Medication</label>
+                                <input type="text" class="form-control" id="medication" name="medication">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dosage" class="form-label">Dosage</label>
+                                <input type="text" class="form-control" id="dosage" name="dosage">
+                            </div>
+                        </div>
+
+                        <!-- Reproductive Health -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Reproductive Health</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="pregnancy_status" class="form-label">Pregnancy Status</label>
+                                <select class="form-select" id="pregnancy_status" name="pregnancy_status">
+                                    <option value="">Select Status</option>
+                                    <option value="Not Pregnant">Not Pregnant</option>
+                                    <option value="Pregnant">Pregnant</option>
+                                    <option value="Kidding Soon">Kidding Soon</option>
+                                    <option value="Recently Kidded">Recently Kidded</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expected_kidding_date" class="form-label">Expected Kidding Date</label>
+                                <input type="date" class="form-control" id="expected_kidding_date" name="expected_kidding_date">
+                            </div>
+                        </div>
+
+                        <!-- Follow-up -->
+                        <div class="row mb-4">
+                            <h3 class="h6 text-muted mb-3">Follow-up</h3>
+                            <div class="col-md-6 mb-3">
+                                <label for="next_checkup" class="form-label">Next Checkup Date</label>
+                                <input type="date" class="form-control" id="next_checkup" name="next_checkup">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vet_name" class="form-label">Veterinarian Name</label>
+                                <input type="text" class="form-control" id="vet_name" name="vet_name">
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="mb-4">
+                            <h3 class="h6 text-muted mb-3">Additional Notes</h3>
+                            <div class="col-12">
+                                <label for="notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3"
+                                    placeholder="Any additional information or special instructions"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('health_records.index') }}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Record</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 2rem;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .h6 {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    .mb-4 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1.5rem;
+    }
+    .mb-4:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}

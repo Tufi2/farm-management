@@ -557,7 +557,7 @@ def add_goat():
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 400
     
-    return render_template('health_records/add.html',
+    return render_template('health_records/goat/add_goat.html',
                          animal_type='Goat',
                          today=date.today())
     
