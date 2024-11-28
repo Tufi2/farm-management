@@ -621,7 +621,7 @@ def add_chicken():
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 400
     
-    return render_template('health_records/add.html',
+    return render_template('health_records/chicken/add_chicken.html',
                          animal_type='Chicken',
                          today=date.today()) 
 
