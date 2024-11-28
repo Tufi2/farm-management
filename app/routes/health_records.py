@@ -777,6 +777,75 @@ def view(id):
                         vaccine['status'] = 'N/A'
                         
             template = 'health_records/cattle/view_cattle.html'  # Changed from view_cattle.html
+        
+        elif record.animal.species == 'Chicken':
+            data = {
+                # Basic Information
+                'basic_info': {
+                    'tag_number': record.animal.tag_number,
+                    'breed': description.get('Basic Information', {}).get('Breed', 'N/A'),
+                    'bird_type': description.get('Basic Information', {}).get('Bird Type', 'N/A'),
+                    'age_group': description.get('Basic Information', {}).get('Age Group', 'N/A'),
+                    'record_date': record.date.strftime('%Y-%m-%d')
+                },
+                
+                # Health Assessment
+                'health_status': {
+                    'current': description.get('Health Assessment', {}).get('Current Status', 'N/A'),
+                    'weight': f"{description.get('Health Assessment', {}).get('Weight', 'N/A')} g",
+                    'physical_condition': description.get('Health Assessment', {}).get('Physical Condition', 'N/A'),
+                    'behavior': description.get('Health Assessment', {}).get('Behavior', 'N/A')
+                },
+
+                # Production Data
+                'production': {
+                    'egg_production': f"{description.get('Production Performance', {}).get('Egg Production', 'N/A')}%",
+                    'egg_quality': description.get('Production Performance', {}).get('Egg Quality', 'N/A'),
+                    'feed_consumption': f"{description.get('Production Performance', {}).get('Feed Consumption', 'N/A')} g/day"
+                },
+
+                # Vaccination & Health
+                'vaccination': {
+                    'current_status': description.get('Vaccination', {}).get('Status', 'N/A'),
+                    'last_vaccination': description.get('Vaccination', {}).get('Last Date', 'N/A'),
+                    'next_due': description.get('Vaccination', {}).get('Next Due', 'N/A'),
+                    'type': description.get('Vaccination', {}).get('Type', 'N/A')
+                },
+
+                # Environment
+                'environment': {
+                    'housing': description.get('Environment', {}).get('Housing Type', 'N/A'),
+                    'sanitation': description.get('Environment', {}).get('Sanitation Status', 'N/A'),
+                    'temperature': f"{description.get('Environment', {}).get('Temperature', 'N/A')}°C",
+                    'humidity': f"{description.get('Environment', {}).get('Humidity', 'N/A')}%"
+                },
+
+                # Treatment & Notes
+                'treatment': {
+                    'current_medication': description.get('Treatment', {}).get('Current Medication', 'N/A'),
+                    'treatment_notes': description.get('Treatment', {}).get('Notes', 'N/A'),
+                    'symptoms': description.get('Treatment', {}).get('Symptoms', 'N/A'),
+                    'treatment_duration': f"{description.get('Treatment', {}).get('Duration', 'N/A')} days"
+                },
+
+                # Follow-up Care
+                'followup': {
+                    'next_checkup': description.get('Follow-up', {}).get('Next Check Date', 'N/A'),
+                    'special_instructions': description.get('Follow-up', {}).get('Special Instructions', 'N/A'),
+                    'recommendations': description.get('Follow-up', {}).get('Recommendations', 'N/A')
+                }
+            }
+
+            # Calculate any alerts or statuses
+            if 'next_due' in data['vaccination'] and data['vaccination']['next_due'] != 'N/A':
+                try:
+                    next_due_date = datetime.strptime(data['vaccination']['next_due'], '%Y-%m-%d').date()
+                    data['vaccination']['alert'] = 'Due' if next_due_date <= date.today() else 'Upcoming'
+                except (ValueError, TypeError):
+                    data['vaccination']['alert'] = 'N/A'
+
+            template = 'health_records/chicken/view_chicken.html'
+
             
         else:
             flash('Unsupported animal type', 'warning')

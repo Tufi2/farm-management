@@ -216,3 +216,62 @@
     }
 </style>
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('chickenHealthRecordForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    try {
+        const formData = new FormData(this);
+        const response = await fetch('{{ url_for("health_records.add_chicken") }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            showToast(result.message, 'success');
+            // Redirect after successful submission
+            setTimeout(() => {
+                window.location.href = '{{ url_for("health_records.index") }}';
+            }, 1500);
+        } else {
+            // Show error message
+            showToast(result.message, 'error');
+        }
+    } catch (error) {
+        showToast('An error occurred while saving the record', 'error');
+    }
+});
+
+// Toast notification function
+function showToast(message, type = 'success') {
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed top-0 end-0 m-3`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+
+    toastEl.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    document.body.appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+
+    // Remove toast after it's hidden
+    toastEl.addEventListener('hidden.bs.toast', () => {
+        toastEl.remove();
+    });
+}
+</script>
+{% endblock %}
