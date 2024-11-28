@@ -14,6 +14,11 @@
             <div class="input-group" style="width: 300px;">
                 <input type="text" class="form-control" placeholder="Search records..." 
                        id="searchInput" value="{{ search_query or '' }}">
+                {% if search_query %}
+                <button class="btn btn-outline-secondary" type="button" id="clearSearch" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </button>
+                {% endif %}
                 <select class="form-select flex-shrink-1" style="max-width: 130px;" id="animalTypeFilter">
                     <option value="all">All Types</option>
                     <option value="sheep">Sheep</option>
@@ -511,6 +516,25 @@
 
 {% block styles %}
 <style>
+
+
+.highlight {
+        background-color: #fff3cd;
+        padding: 2px;
+        border-radius: 2px;
+    }
+
+    #clearSearch {
+        border-left: none;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    #clearSearch:hover {
+        background-color: #e9ecef;
+        color: #dc3545;
+    }
+
 .card {
     border: none;
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
@@ -569,34 +593,77 @@
 
 {% block scripts %}
 <script>
-// Your existing JavaScript code for delete confirmation
-// Add any additional scripts for filtering and searching
-function confirmDelete(recordId, tagNumber) {
-    document.getElementById('deleteTagNumber').textContent = tagNumber;
-    document.getElementById('deleteForm').action = "{{ url_for('health_records.delete', id=0) }}".replace('0', recordId);
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Keep existing delete confirmation function
+    function confirmDelete(recordId, tagNumber) {
+        document.getElementById('deleteTagNumber').textContent = tagNumber;
+        document.getElementById('deleteForm').action = "{{ url_for('health_records.delete', id=0) }}".replace('0', recordId);
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
 
-function highlightSearchTerm() {
-    const searchQuery = new URLSearchParams(window.location.search).get('search');
-    if (searchQuery) {
-        const tables = document.querySelectorAll('.table tbody td:not(:last-child)');
-        const terms = searchQuery.toLowerCase().split(' ');
+    // Add new search functionality
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('animalTypeFilter');
+    const searchButton = searchInput.nextElementSibling.nextElementSibling;
+    const clearSearchBtn = document.getElementById('clearSearch');
+
+    // Function to perform search
+    function performSearch() {
+        const searchQuery = searchInput.value.trim();
+        const animalType = typeFilter.value;
         
-        tables.forEach(cell => {
-            const text = cell.textContent;
-            terms.forEach(term => {
-                if (term && text.toLowerCase().includes(term)) {
+        // Build the URL with search parameters
+        const searchParams = new URLSearchParams();
+        if (searchQuery) searchParams.set('search', searchQuery);
+        if (animalType !== 'all') searchParams.set('type', animalType);
+        
+        // Redirect to the same page with search parameters
+        window.location.href = `${window.location.pathname}?${searchParams.toString()}`;
+    }
+
+    // Clear search function
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            window.location.href = window.location.pathname;
+        });
+    }
+
+    // Search on Enter key
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+
+    // Search on button click
+    searchButton.addEventListener('click', performSearch);
+
+    // Filter change
+    typeFilter.addEventListener('change', performSearch);
+
+    // Highlight search results
+    function highlightSearchResults() {
+        const searchQuery = new URLSearchParams(window.location.search).get('search');
+        if (!searchQuery) return;
+
+        const tables = document.querySelectorAll('.table tbody tr');
+        tables.forEach(row => {
+            const cells = row.querySelectorAll('td:not(:last-child)'); // Exclude actions column
+            cells.forEach(cell => {
+                const text = cell.textContent;
+                if (text.toLowerCase().includes(searchQuery.toLowerCase())) {
                     cell.innerHTML = text.replace(
-                        new RegExp(term, 'gi'),
-                        match => `<span class="search-highlight">${match}</span>`
+                        new RegExp(searchQuery, 'gi'),
+                        match => `<mark class="highlight">${match}</mark>`
                     );
                 }
             });
         });
     }
-}
 
-document.addEventListener('DOMContentLoaded', highlightSearchTerm);
+    // Initialize highlighting
+    highlightSearchResults();
+});
 </script>
 {% endblock %}

@@ -37,6 +37,11 @@ def index():
                 HealthRecord.description.ilike(f'%{search_query}%')
             )
         )
+    # Apply type filter if specific type selected
+    if record_type != 'all':
+        species = record_type.capitalize()
+        base_query = base_query.filter(Animal.species == species)    
+    
     
     # Get records for each animal type
     sheep_records = (base_query.filter(Animal.species == 'Sheep')
