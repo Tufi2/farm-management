@@ -125,7 +125,7 @@ def add_sheep():
                 flash('Sheep not found with this tag number', 'danger')
                 return redirect(url_for('health_records.add_sheep'))
             
-            # Check if a health record already exists for today
+            # Check if a health record already exists for today BEFORE adding new record
             existing_record = HealthRecord.query.filter_by(
                 animal_id=sheep.id,
                 date=date.today()
@@ -140,103 +140,102 @@ def add_sheep():
                 flash('A health record already exists for this sheep today', 'warning')
                 return redirect(url_for('health_records.add_sheep'))
 
-            # Organize the description in a structured way
-            description = {
-                "Basic Information": {
-                    "Weight": request.form.get('weight')
-                },
-                "Health Status": {
-                    "Current": request.form.get('health_status'),
-                    "Vaccination": request.form.get('vaccination_status')
-                },
-                "Wool Quality": {
-                    "Condition": request.form.get('wool_quality'),
-                    "Texture": request.form.get('wool_texture'),
-                    "Last Shearing": request.form.get('last_shearing'),
-                    "Next Shearing": request.form.get('next_shearing')
-                },
-                "Lambing": {
-                    "Status": request.form.get('pregnancy_status'),
-                    "Due Date": request.form.get('due_date'),
-                    "Number of Lambs": request.form.get('number_of_lambs'),
-                    "Lambing Ease": request.form.get('lambing_ease'),
-                    "Notes": request.form.get('lambing_notes')
-                },
-                "Foot Health": {
-                    "Condition": request.form.get('foot_condition'),
-                    "Last Check": request.form.get('last_foot_check'),
-                    "Notes": request.form.get('foot_notes')
-                },
-                "Behavior": {
-                    "Pattern": request.form.get('behavior_pattern'),
-                    "Stress Level": request.form.get('stress_level'),
-                    "Notes": request.form.get('behavior_notes')
-                }
-            }
+            # Start transaction
+            try:
+                db.session.begin_nested()  # Create savepoint
+                
+                # Create record
+                record = HealthRecord(
+                    animal_id=sheep.id,
+                    record_type='Health Check',
+                    date=date.today(),
+                    description=json.dumps({
+                        "Basic Information": {
+                            "Weight": request.form.get('weight')
+                        },
+                        "Health Status": {
+                            "Current": request.form.get('health_status'),
+                            "Vaccination": request.form.get('vaccination_status')
+                        },
+                        "Wool Quality": {
+                            "Condition": request.form.get('wool_quality'),
+                            "Texture": request.form.get('wool_texture'),
+                            "Last Shearing": request.form.get('last_shearing'),
+                            "Next Shearing": request.form.get('next_shearing')
+                        },
+                        "Lambing": {
+                            "Status": request.form.get('pregnancy_status'),
+                            "Due Date": request.form.get('due_date'),
+                            "Number of Lambs": request.form.get('number_of_lambs'),
+                            "Lambing Ease": request.form.get('lambing_ease'),
+                            "Notes": request.form.get('lambing_notes')
+                        },
+                        "Foot Health": {
+                            "Condition": request.form.get('foot_condition'),
+                            "Last Check": request.form.get('last_foot_check'),
+                            "Notes": request.form.get('foot_notes')
+                        },
+                        "Behavior": {
+                            "Pattern": request.form.get('behavior_pattern'),
+                            "Stress Level": request.form.get('stress_level'),
+                            "Notes": request.form.get('behavior_notes')
+                        }
+                    }, indent=2),
+                    treatment=request.form.get('treatment_details'),
+                    created_by_id=current_user.id,
+                    created_at=datetime.utcnow()
+                )
+                
+                db.session.add(record)
+                db.session.flush()  # Flush changes to get the ID and check constraints
 
-            record = HealthRecord(
-                animal_id=sheep.id,
-                record_type='Health Check',
-                date=date.today(),
-                description=json.dumps(description, indent=2),
-                treatment=request.form.get('treatment_details'),
-                created_by_id=current_user.id,
-                created_at=datetime.utcnow()
-            )
-            
-            #Double check for race conditions
-            db.session.flush()
-            duplicate_check = HealthRecord.query.filter_by(
-                animal_id=sheep.id,
-                date=date.today()
-            ).first()
-            
-            if duplicate_check:
-                db.session.rollback()
+                # Final check for duplicates after flush
+                duplicate_check = HealthRecord.query.filter_by(
+                    animal_id=sheep.id,
+                    date=date.today()
+                ).count()
+
+                if duplicate_check > 1:  # If more than one record exists (including our new one)
+                    db.session.rollback()
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return jsonify({
+                            'success': False,
+                            'message': 'A health record already exists for this sheep today'
+                        }), 400
+                    flash('A health record already exists for this sheep today', 'warning')
+                    return redirect(url_for('health_records.add_sheep'))
+
+                # If we get here, it's safe to commit
+                db.session.commit()
+                
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return jsonify({
-                        'success': False,
-                        'message': 'A health record already exists for this sheep today'
-                    }), 400
-                flash('A health record already exists for this sheep today', 'warning')
-                return redirect(url_for('health_records.add_sheep'))
-            
-            
-            db.session.add(record)
-            db.session.commit()
-            
-            return jsonify({'success': True, 'message': 'Health record added successfully!'})
+                        'success': True,
+                        'message': 'Health record added successfully!',
+                        'redirectUrl': url_for('health_records.index')
+                    })
+                
+                flash('Health record added successfully!', 'success')
+                return redirect(url_for('health_records.index'))
+
+            except Exception as e:
+                db.session.rollback()
+                raise e
             
         except Exception as e:
             db.session.rollback()
-            return jsonify({'success': False, 'message': str(e)}), 400
-    
-    # Initialize empty data for GET request
-    data = {
-        'weight': '',
-        'health_status': '',
-        'vaccination_status': '',
-        'pregnancy_status': '',
-        'due_date': '',
-        'number_of_lambs': '',
-        'lambing_ease': '',
-        'lambing_notes': '',
-        'foot_condition': '',
-        'last_foot_check': '',
-        'foot_notes': '',
-        'behavior_pattern': '',
-        'stress_level': '',
-        'behavior_notes': '',
-        'wool_quality': '',
-        'wool_texture': '',
-        'last_shearing': '',
-        'next_shearing': '',
-        'treatment_details': ''
-    }
-    
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'success': False,
+                    'message': str(e)
+                }), 400
+            flash(f'Error adding health record: {str(e)}', 'danger')
+            return redirect(url_for('health_records.add_sheep'))
+
+    # GET request
     return render_template('health_records/sheep/add.html',
                          animal_type='Sheep',
-                         data=data,
+                         data={},
                          today=date.today())
 # Update the cattle route in health_records.py
 @bp.route('/cattle/add', methods=['GET', 'POST'])
@@ -1198,6 +1197,9 @@ def download(id, format):
         # Create the CSV response
         output = si.getvalue()
         si.close()
+        
+        
+    
         
         return send_file(
             BytesIO(output.encode()),
