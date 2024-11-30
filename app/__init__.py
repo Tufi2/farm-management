@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, json
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
@@ -18,6 +18,14 @@ def create_app(config_class=Config):
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
+    
+    # Add custom Jinja2 filter for JSON parsing
+    @app.template_filter('from_json')
+    def from_json_filter(value):
+        try:
+            return json.loads(value) if value else {}
+        except:
+            return {}
 
     # Import models here
     from app.models.user import User

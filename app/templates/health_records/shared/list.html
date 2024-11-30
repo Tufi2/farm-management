@@ -3,14 +3,20 @@
 {% block title %}{{ animal_type }} Health Records{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>{{ animal_type }} Health Records</h1>
-        <a href="{{ url_for('health_records.add_' + animal_type.lower()) }}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Add Record
-        </a>
-    </div>
-
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ animal_type }} Health Records</h1>
+    <a href="{% if animal_type.lower() == 'chicken' %}
+              {{ url_for('health_records.add_chicken') }}
+              {% elif animal_type.lower() == 'sheep' %}
+              {{ url_for('health_records.add_sheep') }}
+              {% elif animal_type.lower() == 'cattle' %}
+              {{ url_for('health_records.add_cattle') }}
+              {% elif animal_type.lower() == 'goat' %}
+              {{ url_for('health_records.add_goat') }}
+              {% endif %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add Record
+    </a>
+</div>
     {% if records %}
     <div class="table-responsive">
         <table class="table table-striped table-hover">
