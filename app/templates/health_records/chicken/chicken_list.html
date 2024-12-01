@@ -15,7 +15,7 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover">
                     <thead>
                         <tr>
                             <th>Tag Number</th>
@@ -32,33 +32,27 @@
                         <tr>
                             <td>{{ record.animal.tag_number }}</td>
                             <td>
-                                {% set status = description.get('Health Status', {}).get('Current') %}
-                                <span class="badge {% if status == 'Healthy' %}bg-success
-                                                  {% elif status == 'Sick' %}bg-danger
-                                                  {% elif status == 'Under_Treatment' %}bg-warning
-                                                  {% else %}bg-secondary{% endif %}">
-                                    {{ status|replace('_', ' ') }}
-                                </span>
+                                <span class="badge bg-success">Healthy</span>
                             </td>
                             <td>
                                 {% set production = description.get('Production', {}).get('Egg Production') %}
-                                {% if production %}{{ production }}%{% else %}N/A{% endif %}
+                                {{ production or 'N/A' }}
                             </td>
                             <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
                             <td>{{ record.record_type }}</td>
                             <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('health_records.view', id=record.id) }}"
-                                       class="btn btn-outline-info" title="View Details">
+                                <div class="btn-group">
+                                    <a href="{{ url_for('health_records.view', id=record.id) }}" 
+                                       class="btn btn-outline-primary btn-sm" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ url_for('health_records.edit', id=record.id) }}" 
-                                       class="btn btn-outline-warning" title="Edit Record">
+                                       class="btn btn-outline-warning btn-sm" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button type="button" class="btn btn-outline-danger" 
-                                            onclick="confirmDelete({{ record.id }}, '{{ record.animal.tag_number }}')"
-                                            title="Delete Record">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                            onclick="confirmDelete({{ record.id }})"
+                                            title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
