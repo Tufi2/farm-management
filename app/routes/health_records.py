@@ -96,7 +96,7 @@ def list_by_type(animal_type):
     # First try animal-specific template
     try:
         # Update the path to match your folder structure
-        return render_template(f'health_records/{animal_type.lower()}/list.html',
+        return render_template(f'health_records/{animal_type.lower()}/{animal_type.lower()}_list.html',
                              records=records,
                              animal_type=species,
                              today=today)
